@@ -1,0 +1,522 @@
+name: Apply music sorting randomizer
+
+on:
+  push:
+    paths:
+      - ".github/workflows/apply-music-randomizer.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply tested randomizer patch
+        run: |
+          patch -p1 <<'PATCH'
+          --- a/index.html
+          +++ b/index.html
+          @@ -323,6 +323,9 @@
+               const screen = document.getElementById("screen");
+               const stageLabel = document.getElementById("stageLabel");
+               const bar = document.getElementById("bar");
+          +    const QUESTIONS_PER_MODULE = 20;
+          +    const MODULE_PASSING_SCORE = 14;
+          +    const FINAL_DRAG_COUNT = 5;
+           
+               const modules = [
+                 {
+          @@ -454,6 +457,352 @@
+                 }
+               ];
+           
+          +    const cutterLetters = ["A", "B", "D", "H", "J", "K", "M", "R", "S", "T", "V"];
+          +    const keyNames = ["Amaj.", "Cmin.", "Dmaj.", "Emaj.", "Gmin."];
+          +    const romanNumerals = [
+          +      { value: 1, text: "I" },
+          +      { value: 2, text: "II" },
+          +      { value: 3, text: "III" },
+          +      { value: 4, text: "IV" },
+          +      { value: 5, text: "V" },
+          +      { value: 6, text: "VI" },
+          +      { value: 7, text: "VII" },
+          +      { value: 8, text: "VIII" },
+          +      { value: 9, text: "IX" },
+          +      { value: 10, text: "X" },
+          +      { value: 11, text: "XI" },
+          +      { value: 12, text: "XII" },
+          +      { value: 13, text: "XIII" },
+          +      { value: 14, text: "XIV" },
+          +      { value: 15, text: "XV" },
+          +      { value: 16, text: "XVI" },
+          +      { value: 17, text: "XVII" },
+          +      { value: 18, text: "XVIII" },
+          +      { value: 19, text: "XIX" },
+          +      { value: 20, text: "XX" }
+          +    ];
+          +
+          +    function randInt(min, max) {
+          +      return Math.floor(Math.random() * (max - min + 1)) + min;
+          +    }
+          +
+          +    function pick(items) {
+          +      return items[randInt(0, items.length - 1)];
+          +    }
+          +
+          +    function randomMainValue() {
+          +      const whole = randInt(300, 650);
+          +      if (Math.random() < 0.22) {
+          +        const tenths = randInt(1, 9);
+          +        return { value: whole + tenths / 10, text: `${whole}.${tenths}` };
+          +      }
+          +      return { value: whole, text: String(whole) };
+          +    }
+          +
+          +    function makeDistinctMainValues(count) {
+          +      const mains = [];
+          +      const seen = new Set();
+          +      while (mains.length < count) {
+          +        const main = randomMainValue();
+          +        if (!seen.has(main.text)) {
+          +          seen.add(main.text);
+          +          mains.push(main);
+          +        }
+          +      }
+          +      return mains.sort((a, b) => a.value - b.value);
+          +    }
+          +
+          +    function randomCutter(forcedLetter) {
+          +      return {
+          +        letter: forcedLetter || pick(cutterLetters),
+          +        number: randInt(10, 99)
+          +      };
+          +    }
+          +
+          +    function formatCutter(cutter) {
+          +      return `.${cutter.letter}${cutter.number}`;
+          +    }
+          +
+          +    function compareCutter(a, b) {
+          +      const letterCompare = a.letter.localeCompare(b.letter);
+          +      if (letterCompare !== 0) return letterCompare;
+          +      return a.number - b.number;
+          +    }
+          +
+          +    function makeDistinctCutters() {
+          +      const sameLetter = Math.random() < 0.65;
+          +      let first;
+          +      let second;
+          +
+          +      if (sameLetter) {
+          +        const letter = pick(cutterLetters);
+          +        const numbers = [randInt(10, 99), randInt(10, 99)];
+          +        while (numbers[1] === numbers[0]) numbers[1] = randInt(10, 99);
+          +        first = { letter, number: numbers[0] };
+          +        second = { letter, number: numbers[1] };
+          +      } else {
+          +        const letters = shuffle(cutterLetters).slice(0, 2);
+          +        first = randomCutter(letters[0]);
+          +        second = randomCutter(letters[1]);
+          +      }
+          +
+          +      return [first, second].sort(compareCutter);
+          +    }
+          +
+          +    function randomYear() {
+          +      const value = randInt(1940, 2025);
+          +      const suffix = Math.random() < 0.2 ? pick(["z", "bx"]) : "";
+          +      return { value, text: `${value}${suffix}` };
+          +    }
+          +
+          +    function laterYear(startYear) {
+          +      const value = Math.min(startYear + randInt(1, 25), 2026);
+          +      const suffix = Math.random() < 0.25 ? pick(["z", "bx"]) : "";
+          +      return { value, text: `${value}${suffix}` };
+          +    }
+          +
+          +    function randomRoman(min = 5, max = 18) {
+          +      return romanNumerals[randInt(min - 1, max - 1)];
+          +    }
+          +
+          +    function randomTail() {
+          +      const year = randomYear();
+          +      const roman = randomRoman();
+          +      const makers = [
+          +        () => {
+          +          const number = randInt(200, 620);
+          +          return { text: `K.${number} ${year.text}`, key: ["K", number, year.value] };
+          +        },
+          +        () => {
+          +          const number = randInt(100, 900);
+          +          return { text: `D.${number} ${year.text}`, key: ["D", number, year.value] };
+          +        },
+          +        () => {
+          +          const number = randInt(1, 12);
+          +          return { text: `H.${roman.text}:${number}`, key: ["H", roman.value, number] };
+          +        },
+          +        () => {
+          +          const opus = randInt(1, 80);
+          +          const volume = randInt(1, 4);
+          +          return { text: `op. ${opus} v.${volume}`, key: ["op", opus, "v", volume] };
+          +        },
+          +        () => {
+          +          const number = randInt(1, 20);
+          +          return { text: `no. ${number} ${year.text}`, key: ["no", number, year.value] };
+          +        },
+          +        () => {
+          +          const bd = randInt(1, 4);
+          +          const volume = randInt(1, 3);
+          +          const copy = randInt(1, 3);
+          +          return { text: `Bd.${bd} v.${volume} c.${copy}`, key: ["Bd", bd, "v", volume, "c", copy] };
+          +        },
+          +        () => {
+          +          const keyName = pick(keyNames);
+          +          return { text: `${keyName} ${year.text}`, key: ["key", keyNames.indexOf(keyName), year.value] };
+          +        }
+          +      ];
+          +      return pick(makers)();
+          +    }
+          +
+          +    function makeOrderedTailPair() {
+          +      const type = pick(["year", "bd", "volume", "copy", "number", "catalog", "roman"]);
+          +      const year = randomYear();
+          +      const later = laterYear(year.value);
+          +
+          +      if (type === "year") {
+          +        const workType = pick(["K", "D", "key"]);
+          +        if (workType === "K") {
+          +          const number = randInt(200, 620);
+          +          return [
+          +            { text: `K.${number} ${year.text}`, key: ["K", number, year.value], label: year.text },
+          +            { text: `K.${number} ${later.text}`, key: ["K", number, later.value], label: later.text }
+          +          ];
+          +        }
+          +        if (workType === "D") {
+          +          const number = randInt(100, 900);
+          +          return [
+          +            { text: `D.${number} ${year.text}`, key: ["D", number, year.value], label: year.text },
+          +            { text: `D.${number} ${later.text}`, key: ["D", number, later.value], label: later.text }
+          +          ];
+          +        }
+          +        const keyName = pick(keyNames);
+          +        const keyIndex = keyNames.indexOf(keyName);
+          +        return [
+          +          { text: `${keyName} ${year.text}`, key: ["key", keyIndex, year.value], label: year.text },
+          +          { text: `${keyName} ${later.text}`, key: ["key", keyIndex, later.value], label: later.text }
+          +        ];
+          +      }
+          +
+          +      if (type === "bd") {
+          +        const first = randInt(1, 3);
+          +        const second = first + randInt(1, 2);
+          +        return [
+          +          { text: `Bd.${first} v.1 c.1`, key: ["Bd", first, "v", 1, "c", 1], label: `Bd.${first}` },
+          +          { text: `Bd.${second} v.1 c.1`, key: ["Bd", second, "v", 1, "c", 1], label: `Bd.${second}` }
+          +        ];
+          +      }
+          +
+          +      if (type === "volume") {
+          +        const opus = randInt(1, 80);
+          +        const first = randInt(1, 3);
+          +        const second = first + randInt(1, 2);
+          +        return [
+          +          { text: `op. ${opus} v.${first}`, key: ["op", opus, "v", first], label: `v.${first}` },
+          +          { text: `op. ${opus} v.${second}`, key: ["op", opus, "v", second], label: `v.${second}` }
+          +        ];
+          +      }
+          +
+          +      if (type === "copy") {
+          +        const bd = randInt(1, 4);
+          +        const volume = randInt(1, 3);
+          +        const first = randInt(1, 2);
+          +        const second = first + randInt(1, 2);
+          +        return [
+          +          { text: `Bd.${bd} v.${volume} c.${first}`, key: ["Bd", bd, "v", volume, "c", first], label: `c.${first}` },
+          +          { text: `Bd.${bd} v.${volume} c.${second}`, key: ["Bd", bd, "v", volume, "c", second], label: `c.${second}` }
+          +        ];
+          +      }
+          +
+          +      if (type === "number") {
+          +        const first = randInt(1, 18);
+          +        const second = first + randInt(1, 4);
+          +        return [
+          +          { text: `no. ${first} ${year.text}`, key: ["no", first, year.value], label: `no. ${first}` },
+          +          { text: `no. ${second} ${year.text}`, key: ["no", second, year.value], label: `no. ${second}` }
+          +        ];
+          +      }
+          +
+          +      if (type === "catalog") {
+          +        const first = randInt(200, 615);
+          +        const second = first + randInt(1, 8);
+          +        return [
+          +          { text: `K.${first} ${year.text}`, key: ["K", first, year.value], label: `K.${first}` },
+          +          { text: `K.${second} ${year.text}`, key: ["K", second, year.value], label: `K.${second}` }
+          +        ];
+          +      }
+          +
+          +      const firstRoman = randomRoman(5, 17);
+          +      const secondRoman = romanNumerals[firstRoman.value + randInt(1, 2) - 1];
+          +      const number = randInt(1, 12);
+          +      return [
+          +        { text: `H.${firstRoman.text}:${number}`, key: ["H", firstRoman.value, number], label: firstRoman.text },
+          +        { text: `H.${secondRoman.text}:${number}`, key: ["H", secondRoman.value, number], label: secondRoman.text }
+          +      ];
+          +    }
+          +
+          +    function compareSortKey(a, b) {
+          +      const length = Math.max(a.length, b.length);
+          +      for (let i = 0; i < length; i++) {
+          +        if (a[i] === undefined) return -1;
+          +        if (b[i] === undefined) return 1;
+          +        if (a[i] === b[i]) continue;
+          +        if (typeof a[i] === "number" && typeof b[i] === "number") {
+          +          return a[i] - b[i];
+          +        }
+          +        return String(a[i]).localeCompare(String(b[i]), undefined, {
+          +          numeric: true,
+          +          sensitivity: "base"
+          +        });
+          +      }
+          +      return 0;
+          +    }
+          +
+          +    function createLabelObject(options = {}) {
+          +      const main = options.main || randomMainValue();
+          +      const cutter = options.cutter || randomCutter();
+          +      const tail = options.tail || randomTail();
+          +      return {
+          +        text: `M ${main.text} ${formatCutter(cutter)} ${tail.text}`,
+          +        key: [main.value, cutter.letter, cutter.number].concat(tail.key),
+          +        main,
+          +        cutter,
+          +        tail
+          +      };
+          +    }
+          +
+          +    function compareLabels(a, b) {
+          +      return compareSortKey(a.key, b.key);
+          +    }
+          +
+          +    function buildQuestion(firstText, secondText, explain) {
+          +      const choices = Math.random() < 0.5 ? [firstText, secondText] : [secondText, firstText];
+          +      return ["Which comes first?", choices[0], choices[1], choices[0] === firstText ? 0 : 1, explain];
+          +    }
+          +
+          +    function buildQuestionSet(factory, count) {
+          +      const questions = [];
+          +      const seen = new Set();
+          +      let attempts = 0;
+          +      while (questions.length < count && attempts < count * 60) {
+          +        attempts += 1;
+          +        const question = factory();
+          +        const key = [question[1], question[2]].sort().join(" | ");
+          +        if (!seen.has(key)) {
+          +          seen.add(key);
+          +          questions.push(question);
+          +        }
+          +      }
+          +      while (questions.length < count) questions.push(factory());
+          +      return questions;
+          +    }
+          +
+          +    function makeMainNumberQuestion() {
+          +      const mains = makeDistinctMainValues(2);
+          +      const lower = createLabelObject({ main: mains[0] });
+          +      const higher = createLabelObject({ main: mains[1] });
+          +      return buildQuestion(lower.text, higher.text, `${lower.main.text} comes before ${higher.main.text}.`);
+          +    }
+          +
+          +    function makeNextElementQuestion() {
+          +      const main = randomMainValue();
+          +      const tail = randomTail();
+          +      const cutters = makeDistinctCutters();
+          +      const lower = createLabelObject({ main, cutter: cutters[0], tail });
+          +      const higher = createLabelObject({ main, cutter: cutters[1], tail });
+          +      return buildQuestion(lower.text, higher.text, `${formatCutter(lower.cutter)} comes before ${formatCutter(higher.cutter)}.`);
+          +    }
+          +
+          +    function makeLaterDetailQuestion() {
+          +      const main = randomMainValue();
+          +      const cutter = randomCutter();
+          +      const tails = makeOrderedTailPair();
+          +      const lower = createLabelObject({ main, cutter, tail: tails[0] });
+          +      const higher = createLabelObject({ main, cutter, tail: tails[1] });
+          +      return buildQuestion(lower.text, higher.text, `${tails[0].label} comes before ${tails[1].label}.`);
+          +    }
+          +
+          +    function generateAllModuleQuestions() {
+          +      return {
+          +        module1: buildQuestionSet(makeMainNumberQuestion, QUESTIONS_PER_MODULE),
+          +        module2: buildQuestionSet(makeNextElementQuestion, QUESTIONS_PER_MODULE),
+          +        module3: buildQuestionSet(makeLaterDetailQuestion, QUESTIONS_PER_MODULE)
+          +      };
+          +    }
+          +
+          +    function getModuleQuestions(mod) {
+          +      return state.generatedQuestions && state.generatedQuestions[mod.key]
+          +        ? state.generatedQuestions[mod.key]
+          +        : mod.questions;
+          +    }
+          +
+          +    function generateFinalDragOrder() {
+          +      const mains = makeDistinctMainValues(3);
+          +      const cutters = makeDistinctCutters();
+          +      const detailCutter = randomCutter();
+          +      const detailTails = makeOrderedTailPair();
+          +      const labels = [
+          +        createLabelObject({ main: mains[0] }),
+          +        createLabelObject({ main: mains[1], cutter: cutters[0], tail: randomTail() }),
+          +        createLabelObject({ main: mains[1], cutter: cutters[1], tail: randomTail() }),
+          +        createLabelObject({ main: mains[2], cutter: detailCutter, tail: detailTails[0] }),
+          +        createLabelObject({ main: mains[2], cutter: detailCutter, tail: detailTails[1] })
+          +      ];
+          +      return labels
+          +        .sort(compareLabels)
+          +        .slice(0, FINAL_DRAG_COUNT)
+          +        .map(label => label.text);
+          +    }
+          +
+               let state = {};
+           
+               function resetState() {
+          @@ -473,6 +822,8 @@
+                     module2: 0,
+                     module3: 0
+                   },
+          +        generatedQuestions: generateAllModuleQuestions(),
+          +        finalDragOrder: generateFinalDragOrder(),
+                   finalDragPassed: false
+                 };
+               }
+          @@ -566,10 +917,11 @@
+                   return;
+                 }
+           
+          -      const q = mod.questions[state.qIndex];
+          +      const questions = getModuleQuestions(mod);
+          +      const q = questions[state.qIndex];
+                 screen.innerHTML = `
+                   <h2>${mod.title}</h2>
+          -        <p><strong>Question ${state.qIndex + 1} of 10</strong></p>
+          +        <p><strong>Question ${state.qIndex + 1} of ${questions.length}</strong></p>
+                   <p>${q[0]}</p>
+                   <button class="choice" onclick="answerQuestion(0)">${q[1]}</button>
+                   <button class="choice" onclick="answerQuestion(1)">${q[2]}</button>
+          @@ -611,7 +963,7 @@
+           
+               function answerQuestion(choice) {
+                 const mod = modules[state.step];
+          -      const q = mod.questions[state.qIndex];
+          +      const q = getModuleQuestions(mod)[state.qIndex];
+                 const correct = choice === q[3];
+           
+                 if (correct) {
+          @@ -631,8 +983,10 @@
+               }
+           
+               function nextQuestion() {
+          +      const mod = modules[state.step];
+          +      const questions = getModuleQuestions(mod);
+                 state.qIndex += 1;
+          -      if (state.qIndex >= 10) {
+          +      if (state.qIndex >= questions.length) {
+                   state.step += 1;
+                   state.phase = "teach";
+                   state.qIndex = 0;
+          @@ -667,14 +1021,8 @@
+               }
+           
+               function renderFinalDrag() {
+          -      const correctOrder = [
+          -        "M 322 .R54 op. 2 v.1",
+          -        "M 412 .S15 Emaj. 1992",
+          -        "M 412 .S415 D.487 1970z",
+          -        "M 412.4 .H4 H.XIV:7",
+          -        "M 451 .S3 H4 Bd.1 v.1 c.3"
+          -      ];
+          -
+          +      if (!state.finalDragOrder) state.finalDragOrder = generateFinalDragOrder();
+          +      const correctOrder = state.finalDragOrder;
+                 const shuffled = shuffle(correctOrder);
+           
+                 screen.innerHTML = `
+          @@ -742,14 +1090,7 @@
+               }
+           
+               function checkDrag() {
+          -      const correctOrder = [
+          -        "M 322 .R54 op. 2 v.1",
+          -        "M 412 .S15 Emaj. 1992",
+          -        "M 412 .S415 D.487 1970z",
+          -        "M 412.4 .H4 H.XIV:7",
+          -        "M 451 .S3 H4 Bd.1 v.1 c.3"
+          -      ];
+          -
+          +      const correctOrder = state.finalDragOrder || [];
+                 const chosen = [];
+                 document.querySelectorAll(".slot").forEach(slot => {
+                   const item = slot.querySelector(".draggable");
+          @@ -787,11 +1128,12 @@
+               }
+           
+               function buildPayload() {
+          -      const module1Passed = state.moduleCorrect.module1 >= 7;
+          -      const module2Passed = state.moduleCorrect.module2 >= 7;
+          -      const module3Passed = state.moduleCorrect.module3 >= 7;
+          +      const module1Passed = state.moduleCorrect.module1 >= MODULE_PASSING_SCORE;
+          +      const module2Passed = state.moduleCorrect.module2 >= MODULE_PASSING_SCORE;
+          +      const module3Passed = state.moduleCorrect.module3 >= MODULE_PASSING_SCORE;
+                 const totalModulesPassed = [module1Passed, module2Passed, module3Passed, state.finalDragPassed].filter(Boolean).length;
+                 const totalScore = state.score + (state.finalDragPassed ? 1 : 0);
+          +      const cumulativePassingScore = MODULE_PASSING_SCORE * modules.length + 1;
+                 const overallPass = module1Passed && module2Passed && module3Passed && state.finalDragPassed;
+           
+                 return {
+          @@ -815,7 +1157,7 @@
+                   totalModulesCompleted: 4,
+                   totalModulesPassed: totalModulesPassed,
+           
+          -        cumulativeCheckPassed: totalScore >= 22,
+          +        cumulativeCheckPassed: totalScore >= cumulativePassingScore,
+                   finalDragDropPassed: state.finalDragPassed,
+           
+                   totalScore: totalScore,
+          @@ -826,6 +1168,7 @@
+           
+               function renderDone() {
+                 const payload = buildPayload();
+          +      const maxScore = QUESTIONS_PER_MODULE * modules.length + 1;
+           
+                 screen.innerHTML = `
+                   <h2>Training Complete</h2>
+          @@ -833,10 +1176,10 @@
+                     <div class="summary-box"><div class="label">Student</div><div class="value">${payload.preferredName}</div></div>
+                     <div class="summary-box"><div class="label">Real Name</div><div class="value">${payload.realName}</div></div>
+                     <div class="summary-box"><div class="label">Email</div><div class="value">${payload.sbuEmail}</div></div>
+          -          <div class="summary-box"><div class="label">Total Score</div><div class="value">${payload.totalScore} / 31</div></div>
+          -          <div class="summary-box"><div class="label">Module 1</div><div class="value">${state.moduleCorrect.module1} / 10</div></div>
+          -          <div class="summary-box"><div class="label">Module 2</div><div class="value">${state.moduleCorrect.module2} / 10</div></div>
+          -          <div class="summary-box"><div class="label">Module 3</div><div class="value">${state.moduleCorrect.module3} / 10</div></div>
+          +          <div class="summary-box"><div class="label">Total Score</div><div class="value">${payload.totalScore} / ${maxScore}</div></div>
+          +          <div class="summary-box"><div class="label">Module 1</div><div class="value">${state.moduleCorrect.module1} / ${QUESTIONS_PER_MODULE}</div></div>
+          +          <div class="summary-box"><div class="label">Module 2</div><div class="value">${state.moduleCorrect.module2} / ${QUESTIONS_PER_MODULE}</div></div>
+          +          <div class="summary-box"><div class="label">Module 3</div><div class="value">${state.moduleCorrect.module3} / ${QUESTIONS_PER_MODULE}</div></div>
+                     <div class="summary-box"><div class="label">Final Drag</div><div class="value">${state.finalDragPassed ? "Passed" : "Not Passed"}</div></div>
+                     <div class="summary-box"><div class="label">Overall Result</div><div class="value">${payload.passFail}</div></div>
+                   </div>
+          PATCH
+          rm ".github/workflows/apply-music-randomizer.yml"
+      - name: Commit generated game update
+        run: |
+          if git diff --quiet; then
+            echo "No index.html changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html ".github/workflows/apply-music-randomizer.yml"
+          git commit -m "Randomize music sorting questions"
+          git push
