@@ -6,19 +6,20 @@
   <title>Shelf It Right</title>
   <style>
     :root {
-      --bg: #f4f7fb;
+      --bg: #f6f6f6;
       --card: #ffffff;
-      --ink: #1f2937;
-      --muted: #6b7280;
-      --line: #d7dee8;
-      --accent: #1d5f91;
-      --accent-2: #2d74ac;
-      --good: #166534;
-      --good-bg: #dcfce7;
-      --bad: #991b1b;
-      --bad-bg: #fee2e2;
-      --warn: #92400e;
-      --warn-bg: #fef3c7;
+      --ink: #000000;
+      --muted: #4B4B4B;
+      --line: #BEBEBE;
+      --accent: #990000;
+      --accent-2: #6B000D;
+      --accent-soft: #f5e6e6;
+      --good: #104247;
+      --good-bg: #BCCF9D;
+      --bad: #6B000D;
+      --bad-bg: #f5d7d9;
+      --warn: #002244;
+      --warn-bg: #F8F2C5;
     }
 
     * { box-sizing: border-box; }
@@ -43,7 +44,7 @@
       border-radius: 18px;
       padding: 24px;
       margin-bottom: 18px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
     }
 
     h1, h2, h3 { margin-top: 0; }
@@ -77,12 +78,17 @@
       background: #fff;
     }
 
+    .field input:focus {
+      outline: 3px solid var(--accent-soft);
+      border-color: var(--accent);
+    }
+
     .pill {
       display: inline-block;
       padding: 6px 10px;
       border-radius: 999px;
-      background: #e7eef6;
-      color: #34516c;
+      background: var(--accent);
+      color: #ffffff;
       font-size: 12px;
       font-weight: 700;
       letter-spacing: .03em;
@@ -92,7 +98,7 @@
     .progress {
       width: 100%;
       height: 10px;
-      background: #e5e7eb;
+      background: #e7e7e7;
       border-radius: 999px;
       overflow: hidden;
       margin: 10px 0 18px;
@@ -106,7 +112,7 @@
     }
 
     .lesson-box, .worked-box, .check-box {
-      background: #f8fafc;
+      background: #f7f7f7;
       border: 1px solid var(--line);
       border-radius: 12px;
       padding: 14px;
@@ -128,7 +134,8 @@
 
     code.call {
       display: inline-block;
-      background: #f3f4f6;
+      background: var(--warn-bg);
+      border: 1px solid #e7dda0;
       padding: 4px 8px;
       border-radius: 8px;
       margin: 3px 4px 3px 0;
@@ -162,13 +169,19 @@
 
     button.choice:hover {
       border-color: var(--accent);
-      background: #f8fbff;
+      background: var(--accent-soft);
     }
 
     button.secondary {
       background: #fff;
       color: var(--ink);
       border: 1px solid var(--line);
+    }
+
+    button.secondary:hover {
+      background: var(--warn-bg);
+      border-color: var(--accent);
+      color: var(--ink);
     }
 
     button:disabled {
@@ -226,7 +239,7 @@
       padding: 14px;
       border: 2px dashed var(--line);
       border-radius: 16px;
-      background: #fafafa;
+      background: #f7f7f7;
       margin-bottom: 12px;
     }
 
@@ -237,7 +250,7 @@
       padding: 12px;
       cursor: grab;
       min-width: 230px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
       font-family: Consolas, monospace;
       font-size: .95rem;
     }
@@ -245,7 +258,7 @@
     .slot {
       min-height: 68px;
       min-width: 230px;
-      border: 2px dashed #cbd5e1;
+      border: 2px dashed var(--line);
       border-radius: 12px;
       padding: 8px;
       background: #fff;
@@ -261,7 +274,7 @@
     }
 
     .drag-over {
-      background: #eef4ff;
+      background: var(--warn-bg);
       border-color: var(--accent);
     }
 
