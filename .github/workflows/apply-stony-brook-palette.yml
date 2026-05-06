@@ -1,0 +1,132 @@
+name: Apply Stony Brook palette
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/apply-stony-brook-palette.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-palette:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply palette to index.html
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'index.html';
+          let html = fs.readFileSync(path, 'utf8');
+
+          function replaceOnce(from, to) {
+            if (!html.includes(from)) {
+              throw new Error(`Expected text not found: ${from.slice(0, 80)}`);
+            }
+            html = html.replace(from, to);
+          }
+
+          replaceOnce(`      --bg: #f4f7fb;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #d7dee8;
+      --accent: #1d5f91;
+      --accent-2: #2d74ac;
+      --good: #166534;
+      --good-bg: #dcfce7;
+      --bad: #991b1b;
+      --bad-bg: #fee2e2;
+      --warn: #92400e;
+      --warn-bg: #fef3c7;`, `      --bg: #f6f6f6;
+      --card: #ffffff;
+      --ink: #000000;
+      --muted: #4B4B4B;
+      --line: #BEBEBE;
+      --accent: #990000;
+      --accent-2: #6B000D;
+      --accent-soft: #f5e6e6;
+      --good: #104247;
+      --good-bg: #BCCF9D;
+      --bad: #6B000D;
+      --bad-bg: #f5d7d9;
+      --warn: #002244;
+      --warn-bg: #F8F2C5;`);
+
+          replaceOnce(`      box-shadow: 0 6px 20px rgba(0,0,0,.05);`, `      box-shadow: 0 6px 20px rgba(0,0,0,.08);`);
+
+          replaceOnce(`    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #fff;
+    }
+
+    .pill {`, `    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      font-size: 1rem;
+      background: #fff;
+    }
+
+    .field input:focus {
+      outline: 3px solid var(--accent-soft);
+      border-color: var(--accent);
+    }
+
+    .pill {`);
+
+          replaceOnce(`      background: #e7eef6;
+      color: #34516c;`, `      background: var(--accent);
+      color: #ffffff;`);
+          replaceOnce(`      background: #e5e7eb;`, `      background: #e7e7e7;`);
+          replaceOnce(`      background: #f8fafc;`, `      background: #f7f7f7;`);
+          replaceOnce(`      background: #f3f4f6;
+      padding: 4px 8px;`, `      background: var(--warn-bg);
+      border: 1px solid #e7dda0;
+      padding: 4px 8px;`);
+          replaceOnce(`      background: #f8fbff;`, `      background: var(--accent-soft);`);
+
+          replaceOnce(`    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    button:disabled {`, `    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    button.secondary:hover {
+      background: var(--warn-bg);
+      border-color: var(--accent);
+      color: var(--ink);
+    }
+
+    button:disabled {`);
+
+          replaceOnce(`      background: #fafafa;`, `      background: #f7f7f7;`);
+          replaceOnce(`      box-shadow: 0 2px 8px rgba(0,0,0,.05);`, `      box-shadow: 0 2px 8px rgba(0,0,0,.08);`);
+          replaceOnce(`      border: 2px dashed #cbd5e1;`, `      border: 2px dashed var(--line);`);
+          replaceOnce(`      background: #eef4ff;`, `      background: var(--warn-bg);`);
+
+          fs.writeFileSync(path, html);
+          NODE
+      - name: Commit palette update
+        run: |
+          rm -f .github/workflows/apply-stony-brook-palette.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/apply-stony-brook-palette.yml
+          git commit -m "Apply Stony Brook palette"
+          git push
