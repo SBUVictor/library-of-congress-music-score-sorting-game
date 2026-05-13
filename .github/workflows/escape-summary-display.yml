@@ -1,7 +1,6 @@
-# trigger: 2026-05-13T08:20-04:00
 name: Escape summary display fields
 
-on:
+'on':
   push:
     branches:
       - main
@@ -27,17 +26,18 @@ jobs:
 
           if (!html.includes('function escapeHtml(value)')) {
             const marker = '    function renderDone() {\n';
-            const helper = `    function escapeHtml(value) {
-      return String(value).replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      }[char]));
-    }
-
-`;
+            const helper = [
+              '    function escapeHtml(value) {',
+              "      return String(value).replace(/[&<>\"']/g, char => ({",
+              '        "&": "&amp;",',
+              '        "<": "&lt;",',
+              '        ">": "&gt;",',
+              '        [String.fromCharCode(34)]: "&quot;",',
+              '        [String.fromCharCode(39)]: "&#39;"',
+              '      }[char]));',
+              '    }',
+              ''
+            ].join('\n') + '\n';
             if (!html.includes(marker)) throw new Error('renderDone marker not found');
             html = html.replace(marker, helper + marker);
           }
