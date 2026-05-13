@@ -1264,16 +1264,31 @@
       };
     }
 
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        [String.fromCharCode(34)]: "&quot;",
+        [String.fromCharCode(39)]: "&#39;"
+      }[char]));
+    }
+
     function renderDone() {
       const payload = buildPayload();
       const maxScore = QUESTIONS_PER_MODULE * modules.length + 1;
+      const display = {
+        preferredName: escapeHtml(payload.preferredName),
+        realName: escapeHtml(payload.realName),
+        sbuEmail: escapeHtml(payload.sbuEmail)
+      };
 
       screen.innerHTML = `
         <h2>Training Complete</h2>
         <div class="summary-grid">
-          <div class="summary-box"><div class="label">Student</div><div class="value">${payload.preferredName}</div></div>
-          <div class="summary-box"><div class="label">Real Name</div><div class="value">${payload.realName}</div></div>
-          <div class="summary-box"><div class="label">Email</div><div class="value">${payload.sbuEmail}</div></div>
+          <div class="summary-box"><div class="label">Student</div><div class="value">${display.preferredName}</div></div>
+          <div class="summary-box"><div class="label">Real Name</div><div class="value">${display.realName}</div></div>
+          <div class="summary-box"><div class="label">Email</div><div class="value">${display.sbuEmail}</div></div>
           <div class="summary-box"><div class="label">Total Score</div><div class="value">${payload.totalScore} / ${maxScore}</div></div>
           <div class="summary-box"><div class="label">Module 1</div><div class="value">${state.moduleCorrect.module1} / ${QUESTIONS_PER_MODULE}</div></div>
           <div class="summary-box"><div class="label">Module 2</div><div class="value">${state.moduleCorrect.module2} / ${QUESTIONS_PER_MODULE}</div></div>
