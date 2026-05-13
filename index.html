@@ -1297,7 +1297,6 @@
           <div class="summary-box"><div class="label">Overall Result</div><div class="value">${payload.passFail}</div></div>
         </div>
 
-        <p>Your submitted result will be recorded and emailed to your Stony Brook address.</p>
         <button id="submitBtn" onclick="submitResults()">Submit Results</button>
         <div id="submitStatus"></div>
       `;
@@ -1325,7 +1324,7 @@
         });
 
         state.submitted = true;
-        status.innerHTML = `<div class="feedback good">Submission sent. Your result will be recorded and emailed to your Stony Brook address.</div>`;
+        status.innerHTML = `<div class="feedback good">Submission sent. Check the sheet in a few seconds.</div>`;
       } catch (error) {
         status.innerHTML = `<div class="feedback bad">Submission failed in the browser.</div>`;
       }
