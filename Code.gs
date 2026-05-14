@@ -51,11 +51,12 @@ function doPost(e) {
 
   try {
     const payload = normalizePayload_(parsePayload_(e));
+    const validationError = validatePayload_(payload);
 
-    if (!SCOREBOARD_CONFIG.REQUIRED_EMAIL_PATTERN.test(payload.sbuEmail)) {
+    if (validationError) {
       return jsonResponse_({
         ok: false,
-        error: 'Official submissions require a Stony Brook email address.'
+        error: validationError
       });
     }
 
@@ -121,6 +122,26 @@ function normalizePayload_(raw) {
     passFail: cleanText_(payload.passFail) === 'Pass' ? 'Pass' : 'Fail',
     attemptCount: safeNumber_(payload.attemptCount) || 1
   };
+}
+
+function validatePayload_(payload) {
+  if (!payload.realName) {
+    return 'Real Name is required.';
+  }
+
+  if (!payload.preferredName) {
+    return 'Preferred Name is required.';
+  }
+
+  if (!payload.sbuEmail) {
+    return 'SBU Email is required.';
+  }
+
+  if (!SCOREBOARD_CONFIG.REQUIRED_EMAIL_PATTERN.test(payload.sbuEmail)) {
+    return 'Official submissions require a Stony Brook email address.';
+  }
+
+  return '';
 }
 
 function appendSubmission_(payload) {
