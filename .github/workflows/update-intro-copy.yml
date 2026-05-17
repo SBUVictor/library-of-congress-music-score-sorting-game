@@ -55,3 +55,5 @@ jobs:
           git add index.html .github/workflows/update-intro-copy.yml
           git commit -m "Update intro copy"
           git push
+
+# trigger: 2026-05-17T00:00:00Z
