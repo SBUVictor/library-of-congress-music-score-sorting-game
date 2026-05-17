@@ -1219,12 +1219,12 @@
 
       state.finalDragPassed = ok;
 
-      feedback.innerHTML = `
-        <div class="feedback ${ok ? "good" : "bad"}">
-          ${ok ? "Correct. You placed the labels in the right order." : "Not quite. The final order is not correct yet."}
-        </div>
-        <button onclick="finishTraining()">Continue</button>
-      `;
+      feedback.innerHTML = ok
+        ? `
+          <div class="feedback good">Correct. You placed the labels in the right order.</div>
+          <button onclick="finishTraining()">Continue</button>
+        `
+        : `<div class="feedback bad">Not quite. The final order is not correct yet. Adjust the labels and check again.</div>`;
     }
 
     function finishTraining() {
