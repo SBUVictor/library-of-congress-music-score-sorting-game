@@ -20,68 +20,31 @@ jobs:
           from pathlib import Path
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-          replacements = [
-              (
-                  '''    .draggable {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      cursor: grab;
-      min-width: 230px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
-      font-family: Consolas, monospace;
-      font-size: .95rem;
-    }
 
-    .slot {''',
-                  '''    .draggable {
-      background: #fff;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px;
-      cursor: grab;
-      min-width: 230px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.08);
-      font-family: Consolas, monospace;
-      font-size: .95rem;
-    }
+          def once(old, new):
+              global text
+              if new in text:
+                  return
+              if old not in text:
+                  raise SystemExit('Missing expected snippet: ' + old[:100].replace('\n', ' '))
+              text = text.replace(old, new, 1)
 
-    .draggable.selected {
+          once('''    .slot {
+      min-height: 68px;''', '''    .draggable.selected {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(153,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
     }
 
-    .slot {'''
-              ),
-              (
-                  '    let state = {};\n',
-                  '    let state = {};\n    let selectedDragItem = null;\n'
-              ),
-              (
-                  '''    function makeDraggable(text, id) {
-      const div = document.createElement("div");
-      div.className = "draggable";
-      div.draggable = true;
-      div.id = id;
-      div.dataset.value = text;
-      div.textContent = text;
-      return div;
-    }
+    .slot {
+      min-height: 68px;''')
 
-    function makeSlot(n) {
-      const div = document.createElement("div");
-      div.className = "slot";
-      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;
-      return div;
-    }''',
-                  '''    function makeDraggable(text, id) {
-      const div = document.createElement("div");
-      div.className = "draggable";
-      div.draggable = true;
-      div.id = id;
-      div.dataset.value = text;
-      div.textContent = text;
+          once('''    let state = {};
+''', '''    let state = {};
+    let selectedDragItem = null;
+''')
+
+          once('''      div.textContent = text;
+      return div;''', '''      div.textContent = text;
       div.tabIndex = 0;
       div.setAttribute("role", "button");
       div.setAttribute("aria-label", "Select label " + text);
@@ -94,79 +57,27 @@ jobs:
           selectDragItem(this);
         }
       });
-      return div;
-    }
+      return div;''')
 
-    function makeSlot(n) {
-      const div = document.createElement("div");
-      div.className = "slot";
+          once('''      div.className = "slot";
+      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;''', '''      div.className = "slot";
       div.tabIndex = 0;
       div.setAttribute("role", "button");
       div.setAttribute("aria-label", "Place selected label in position " + n);
-      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;
-      return div;
-    }'''
-              ),
-              (
-                  '''        <p>Drag each label into the correct order from first to last.</p>
-        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''',
-                  '''        <p>Drag each label into the correct order from first to last.</p>
+      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;''')
+
+          once('''        <p>Drag each label into the correct order from first to last.</p>
+        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''', '''        <p>Drag each label into the correct order from first to last.</p>
         <p class="muted">On touch screens or keyboards, select a label first, then choose a position slot.</p>
-        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>'''
-              ),
-              (
-                  '''    function enableDnD() {
-      document.querySelectorAll(".draggable").forEach(el => {
-        el.addEventListener("dragstart", function(e) {
-          e.dataTransfer.setData("text/plain", this.id);
-        });
-      });
+        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''')
 
-      document.querySelectorAll(".slot").forEach(slot => {
-        slot.addEventListener("dragover", function(e) {
-          e.preventDefault();
-          this.classList.add("drag-over");
-        });
-
-        slot.addEventListener("dragleave", function() {
-          this.classList.remove("drag-over");
-        });
-
-        slot.addEventListener("drop", function(e) {
-          e.preventDefault();
-          this.classList.remove("drag-over");
-          const id = e.dataTransfer.getData("text/plain");
-          const el = document.getElementById(id);
-          const bank = document.getElementById("bank");
-          if (!el) return;
-
-          const existing = this.querySelector(".draggable");
-          if (existing && bank) bank.appendChild(existing);
-
-          this.appendChild(el);
-        });
-      });
-
-      const bank = document.getElementById("bank");
-      bank.addEventListener("dragover", e => e.preventDefault());
-      bank.addEventListener("drop", function(e) {
-        e.preventDefault();
-        const id = e.dataTransfer.getData("text/plain");
-        const el = document.getElementById(id);
-        if (el) bank.appendChild(el);
-      });
-    }
-
-    function checkDrag() {''',
-                  '''    function enableDnD() {
-      document.querySelectorAll(".draggable").forEach(el => {
-        el.addEventListener("dragstart", function(e) {
+          once('''        el.addEventListener("dragstart", function(e) {
+          e.dataTransfer.setData("text/plain", this.id);''', '''        el.addEventListener("dragstart", function(e) {
           clearSelectedDragItem();
-          e.dataTransfer.setData("text/plain", this.id);
-        });
-      });
+          e.dataTransfer.setData("text/plain", this.id);''')
 
-      document.querySelectorAll(".slot").forEach(slot => {
+          once('''      document.querySelectorAll(".slot").forEach(slot => {
+        slot.addEventListener("dragover", function(e) {''', '''      document.querySelectorAll(".slot").forEach(slot => {
         slot.addEventListener("click", function(e) {
           if (selectedDragItem && !e.target.closest(".draggable")) {
             placeSelectedLabel(this);
@@ -180,27 +91,14 @@ jobs:
           }
         });
 
-        slot.addEventListener("dragover", function(e) {
-          e.preventDefault();
-          this.classList.add("drag-over");
+        slot.addEventListener("dragover", function(e) {''')
+
+          once('''          this.appendChild(el);
         });
+      });
 
-        slot.addEventListener("dragleave", function() {
-          this.classList.remove("drag-over");
-        });
-
-        slot.addEventListener("drop", function(e) {
-          e.preventDefault();
-          this.classList.remove("drag-over");
-          const id = e.dataTransfer.getData("text/plain");
-          const el = document.getElementById(id);
-          const bank = document.getElementById("bank");
-          if (!el) return;
-
-          const existing = this.querySelector(".draggable");
-          if (existing && bank) bank.appendChild(existing);
-
-          this.appendChild(el);
+      const bank = document.getElementById("bank");
+      bank.addEventListener("dragover", e => e.preventDefault());''', '''          this.appendChild(el);
           clearSelectedDragItem();
         });
       });
@@ -211,11 +109,14 @@ jobs:
           placeSelectedLabel(bank);
         }
       });
-      bank.addEventListener("dragover", e => e.preventDefault());
-      bank.addEventListener("drop", function(e) {
-        e.preventDefault();
-        const id = e.dataTransfer.getData("text/plain");
-        const el = document.getElementById(id);
+      bank.addEventListener("dragover", e => e.preventDefault());''')
+
+          once('''        const el = document.getElementById(id);
+        if (el) bank.appendChild(el);
+      });
+    }
+
+    function checkDrag() {''', '''        const el = document.getElementById(id);
         if (el) bank.appendChild(el);
         clearSelectedDragItem();
       });
@@ -249,15 +150,8 @@ jobs:
       clearSelectedDragItem();
     }
 
-    function checkDrag() {'''
-              )
-          ]
-          for old, new in replacements:
-              if new in text:
-                  continue
-              if old not in text:
-                  raise SystemExit('Missing expected snippet: ' + old[:120].replace('\n', ' '))
-              text = text.replace(old, new, 1)
+    function checkDrag() {''')
+
           path.write_text(text, encoding='utf-8')
           PY
       - name: Remove temporary workflow
