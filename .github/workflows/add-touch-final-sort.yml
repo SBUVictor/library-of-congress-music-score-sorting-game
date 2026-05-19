@@ -1,0 +1,271 @@
+name: Add touch fallback for final sorting
+
+on:
+  push:
+    paths:
+      - '.github/workflows/add-touch-final-sort.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-touch-sort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add tap-to-place final sort support
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+          replacements = [
+              (
+                  '''    .draggable {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: grab;
+      min-width: 230px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      font-family: Consolas, monospace;
+      font-size: .95rem;
+    }
+
+    .slot {''',
+                  '''    .draggable {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      cursor: grab;
+      min-width: 230px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      font-family: Consolas, monospace;
+      font-size: .95rem;
+    }
+
+    .draggable.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(153,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+    }
+
+    .slot {'''
+              ),
+              (
+                  '    let state = {};\n',
+                  '    let state = {};\n    let selectedDragItem = null;\n'
+              ),
+              (
+                  '''    function makeDraggable(text, id) {
+      const div = document.createElement("div");
+      div.className = "draggable";
+      div.draggable = true;
+      div.id = id;
+      div.dataset.value = text;
+      div.textContent = text;
+      return div;
+    }
+
+    function makeSlot(n) {
+      const div = document.createElement("div");
+      div.className = "slot";
+      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;
+      return div;
+    }''',
+                  '''    function makeDraggable(text, id) {
+      const div = document.createElement("div");
+      div.className = "draggable";
+      div.draggable = true;
+      div.id = id;
+      div.dataset.value = text;
+      div.textContent = text;
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", "Select label " + text);
+      div.addEventListener("click", function() {
+        selectDragItem(this);
+      });
+      div.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectDragItem(this);
+        }
+      });
+      return div;
+    }
+
+    function makeSlot(n) {
+      const div = document.createElement("div");
+      div.className = "slot";
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", "Place selected label in position " + n);
+      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;
+      return div;
+    }'''
+              ),
+              (
+                  '''        <p>Drag each label into the correct order from first to last.</p>
+        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''',
+                  '''        <p>Drag each label into the correct order from first to last.</p>
+        <p class="muted">On touch screens or keyboards, select a label first, then choose a position slot.</p>
+        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>'''
+              ),
+              (
+                  '''    function enableDnD() {
+      document.querySelectorAll(".draggable").forEach(el => {
+        el.addEventListener("dragstart", function(e) {
+          e.dataTransfer.setData("text/plain", this.id);
+        });
+      });
+
+      document.querySelectorAll(".slot").forEach(slot => {
+        slot.addEventListener("dragover", function(e) {
+          e.preventDefault();
+          this.classList.add("drag-over");
+        });
+
+        slot.addEventListener("dragleave", function() {
+          this.classList.remove("drag-over");
+        });
+
+        slot.addEventListener("drop", function(e) {
+          e.preventDefault();
+          this.classList.remove("drag-over");
+          const id = e.dataTransfer.getData("text/plain");
+          const el = document.getElementById(id);
+          const bank = document.getElementById("bank");
+          if (!el) return;
+
+          const existing = this.querySelector(".draggable");
+          if (existing && bank) bank.appendChild(existing);
+
+          this.appendChild(el);
+        });
+      });
+
+      const bank = document.getElementById("bank");
+      bank.addEventListener("dragover", e => e.preventDefault());
+      bank.addEventListener("drop", function(e) {
+        e.preventDefault();
+        const id = e.dataTransfer.getData("text/plain");
+        const el = document.getElementById(id);
+        if (el) bank.appendChild(el);
+      });
+    }
+
+    function checkDrag() {''',
+                  '''    function enableDnD() {
+      document.querySelectorAll(".draggable").forEach(el => {
+        el.addEventListener("dragstart", function(e) {
+          clearSelectedDragItem();
+          e.dataTransfer.setData("text/plain", this.id);
+        });
+      });
+
+      document.querySelectorAll(".slot").forEach(slot => {
+        slot.addEventListener("click", function(e) {
+          if (selectedDragItem && !e.target.closest(".draggable")) {
+            placeSelectedLabel(this);
+          }
+        });
+
+        slot.addEventListener("keydown", function(e) {
+          if (selectedDragItem && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            placeSelectedLabel(this);
+          }
+        });
+
+        slot.addEventListener("dragover", function(e) {
+          e.preventDefault();
+          this.classList.add("drag-over");
+        });
+
+        slot.addEventListener("dragleave", function() {
+          this.classList.remove("drag-over");
+        });
+
+        slot.addEventListener("drop", function(e) {
+          e.preventDefault();
+          this.classList.remove("drag-over");
+          const id = e.dataTransfer.getData("text/plain");
+          const el = document.getElementById(id);
+          const bank = document.getElementById("bank");
+          if (!el) return;
+
+          const existing = this.querySelector(".draggable");
+          if (existing && bank) bank.appendChild(existing);
+
+          this.appendChild(el);
+          clearSelectedDragItem();
+        });
+      });
+
+      const bank = document.getElementById("bank");
+      bank.addEventListener("click", function(e) {
+        if (selectedDragItem && !e.target.closest(".draggable")) {
+          placeSelectedLabel(bank);
+        }
+      });
+      bank.addEventListener("dragover", e => e.preventDefault());
+      bank.addEventListener("drop", function(e) {
+        e.preventDefault();
+        const id = e.dataTransfer.getData("text/plain");
+        const el = document.getElementById(id);
+        if (el) bank.appendChild(el);
+        clearSelectedDragItem();
+      });
+    }
+
+    function selectDragItem(el) {
+      if (selectedDragItem === el) {
+        clearSelectedDragItem();
+        return;
+      }
+      clearSelectedDragItem();
+      selectedDragItem = el;
+      selectedDragItem.classList.add("selected");
+    }
+
+    function clearSelectedDragItem() {
+      if (selectedDragItem) {
+        selectedDragItem.classList.remove("selected");
+      }
+      selectedDragItem = null;
+    }
+
+    function placeSelectedLabel(target) {
+      if (!selectedDragItem) return;
+      const bank = document.getElementById("bank");
+      if (target.classList.contains("slot")) {
+        const existing = target.querySelector(".draggable");
+        if (existing && bank) bank.appendChild(existing);
+      }
+      target.appendChild(selectedDragItem);
+      clearSelectedDragItem();
+    }
+
+    function checkDrag() {'''
+              )
+          ]
+          for old, new in replacements:
+              if new in text:
+                  continue
+              if old not in text:
+                  raise SystemExit('Missing expected snippet: ' + old[:120].replace('\n', ' '))
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Remove temporary workflow
+        run: rm .github/workflows/add-touch-final-sort.yml
+      - name: Commit touch sort support
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html .github/workflows/add-touch-final-sort.yml
+          git commit -m "Add touch fallback for final sorting"
+          git push
