@@ -20,7 +20,6 @@ jobs:
           from pathlib import Path
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-
           def once(old, new):
               global text
               if new in text:
@@ -28,130 +27,15 @@ jobs:
               if old not in text:
                   raise SystemExit('Missing expected snippet: ' + old[:100].replace('\n', ' '))
               text = text.replace(old, new, 1)
-
-          once('''    .slot {
-      min-height: 68px;''', '''    .draggable.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(153,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
-    }
-
-    .slot {
-      min-height: 68px;''')
-
-          once('''    let state = {};
-''', '''    let state = {};
-    let selectedDragItem = null;
-''')
-
-          once('''      div.textContent = text;
-      return div;''', '''      div.textContent = text;
-      div.tabIndex = 0;
-      div.setAttribute("role", "button");
-      div.setAttribute("aria-label", "Select label " + text);
-      div.addEventListener("click", function() {
-        selectDragItem(this);
-      });
-      div.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          selectDragItem(this);
-        }
-      });
-      return div;''')
-
-          once('''      div.className = "slot";
-      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;''', '''      div.className = "slot";
-      div.tabIndex = 0;
-      div.setAttribute("role", "button");
-      div.setAttribute("aria-label", "Place selected label in position " + n);
-      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;''')
-
-          once('''        <p>Drag each label into the correct order from first to last.</p>
-        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''', '''        <p>Drag each label into the correct order from first to last.</p>
-        <p class="muted">On touch screens or keyboards, select a label first, then choose a position slot.</p>
-        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>''')
-
-          once('''        el.addEventListener("dragstart", function(e) {
-          e.dataTransfer.setData("text/plain", this.id);''', '''        el.addEventListener("dragstart", function(e) {
-          clearSelectedDragItem();
-          e.dataTransfer.setData("text/plain", this.id);''')
-
-          once('''      document.querySelectorAll(".slot").forEach(slot => {
-        slot.addEventListener("dragover", function(e) {''', '''      document.querySelectorAll(".slot").forEach(slot => {
-        slot.addEventListener("click", function(e) {
-          if (selectedDragItem && !e.target.closest(".draggable")) {
-            placeSelectedLabel(this);
-          }
-        });
-
-        slot.addEventListener("keydown", function(e) {
-          if (selectedDragItem && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            placeSelectedLabel(this);
-          }
-        });
-
-        slot.addEventListener("dragover", function(e) {''')
-
-          once('''          this.appendChild(el);
-        });
-      });
-
-      const bank = document.getElementById("bank");
-      bank.addEventListener("dragover", e => e.preventDefault());''', '''          this.appendChild(el);
-          clearSelectedDragItem();
-        });
-      });
-
-      const bank = document.getElementById("bank");
-      bank.addEventListener("click", function(e) {
-        if (selectedDragItem && !e.target.closest(".draggable")) {
-          placeSelectedLabel(bank);
-        }
-      });
-      bank.addEventListener("dragover", e => e.preventDefault());''')
-
-          once('''        const el = document.getElementById(id);
-        if (el) bank.appendChild(el);
-      });
-    }
-
-    function checkDrag() {''', '''        const el = document.getElementById(id);
-        if (el) bank.appendChild(el);
-        clearSelectedDragItem();
-      });
-    }
-
-    function selectDragItem(el) {
-      if (selectedDragItem === el) {
-        clearSelectedDragItem();
-        return;
-      }
-      clearSelectedDragItem();
-      selectedDragItem = el;
-      selectedDragItem.classList.add("selected");
-    }
-
-    function clearSelectedDragItem() {
-      if (selectedDragItem) {
-        selectedDragItem.classList.remove("selected");
-      }
-      selectedDragItem = null;
-    }
-
-    function placeSelectedLabel(target) {
-      if (!selectedDragItem) return;
-      const bank = document.getElementById("bank");
-      if (target.classList.contains("slot")) {
-        const existing = target.querySelector(".draggable");
-        if (existing && bank) bank.appendChild(existing);
-      }
-      target.appendChild(selectedDragItem);
-      clearSelectedDragItem();
-    }
-
-    function checkDrag() {''')
-
+          once('    .slot {\n      min-height: 68px;', '    .draggable.selected {\n      border-color: var(--accent);\n      box-shadow: 0 0 0 3px rgba(153,0,0,.18), 0 2px 8px rgba(0,0,0,.08);\n    }\n\n    .slot {\n      min-height: 68px;')
+          once('    let state = {};\n', '    let state = {};\n    let selectedDragItem = null;\n')
+          once('      div.textContent = text;\n      return div;', '      div.textContent = text;\n      div.tabIndex = 0;\n      div.setAttribute("role", "button");\n      div.setAttribute("aria-label", "Select label " + text);\n      div.addEventListener("click", function() {\n        selectDragItem(this);\n      });\n      div.addEventListener("keydown", function(e) {\n        if (e.key === "Enter" || e.key === " ") {\n          e.preventDefault();\n          selectDragItem(this);\n        }\n      });\n      return div;')
+          once('      div.className = "slot";\n      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;', '      div.className = "slot";\n      div.tabIndex = 0;\n      div.setAttribute("role", "button");\n      div.setAttribute("aria-label", "Place selected label in position " + n);\n      div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;')
+          once('        <p>Drag each label into the correct order from first to last.</p>\n        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>', '        <p>Drag each label into the correct order from first to last.</p>\n        <p class="muted">On touch screens or keyboards, select a label first, then choose a position slot.</p>\n        <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>')
+          once('        el.addEventListener("dragstart", function(e) {\n          e.dataTransfer.setData("text/plain", this.id);', '        el.addEventListener("dragstart", function(e) {\n          clearSelectedDragItem();\n          e.dataTransfer.setData("text/plain", this.id);')
+          once('      document.querySelectorAll(".slot").forEach(slot => {\n        slot.addEventListener("dragover", function(e) {', '      document.querySelectorAll(".slot").forEach(slot => {\n        slot.addEventListener("click", function(e) {\n          if (selectedDragItem && !e.target.closest(".draggable")) {\n            placeSelectedLabel(this);\n          }\n        });\n\n        slot.addEventListener("keydown", function(e) {\n          if (selectedDragItem && (e.key === "Enter" || e.key === " ")) {\n            e.preventDefault();\n            placeSelectedLabel(this);\n          }\n        });\n\n        slot.addEventListener("dragover", function(e) {')
+          once('          this.appendChild(el);\n        });\n      });\n\n      const bank = document.getElementById("bank");\n      bank.addEventListener("dragover", e => e.preventDefault());', '          this.appendChild(el);\n          clearSelectedDragItem();\n        });\n      });\n\n      const bank = document.getElementById("bank");\n      bank.addEventListener("click", function(e) {\n        if (selectedDragItem && !e.target.closest(".draggable")) {\n          placeSelectedLabel(bank);\n        }\n      });\n      bank.addEventListener("dragover", e => e.preventDefault());')
+          once('        const el = document.getElementById(id);\n        if (el) bank.appendChild(el);\n      });\n    }\n\n    function checkDrag() {', '        const el = document.getElementById(id);\n        if (el) bank.appendChild(el);\n        clearSelectedDragItem();\n      });\n    }\n\n    function selectDragItem(el) {\n      if (selectedDragItem === el) {\n        clearSelectedDragItem();\n        return;\n      }\n      clearSelectedDragItem();\n      selectedDragItem = el;\n      selectedDragItem.classList.add("selected");\n    }\n\n    function clearSelectedDragItem() {\n      if (selectedDragItem) {\n        selectedDragItem.classList.remove("selected");\n      }\n      selectedDragItem = null;\n    }\n\n    function placeSelectedLabel(target) {\n      if (!selectedDragItem) return;\n      const bank = document.getElementById("bank");\n      if (target.classList.contains("slot")) {\n        const existing = target.querySelector(".draggable");\n        if (existing && bank) bank.appendChild(existing);\n      }\n      target.appendChild(selectedDragItem);\n      clearSelectedDragItem();\n    }\n\n    function checkDrag() {')
           path.write_text(text, encoding='utf-8')
           PY
       - name: Remove temporary workflow
