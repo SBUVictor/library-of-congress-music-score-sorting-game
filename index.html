@@ -298,6 +298,11 @@
       font-size: .95rem;
     }
 
+    .draggable.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(153,0,0,.18), 0 2px 8px rgba(0,0,0,.08);
+    }
+
     .slot {
       min-height: 68px;
       min-width: 230px;
@@ -904,6 +909,7 @@
     }
 
     let state = {};
+    let selectedDragItem = null;
 
     function resetState() {
       state = {
@@ -1101,12 +1107,27 @@
       div.id = id;
       div.dataset.value = text;
       div.textContent = text;
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", "Select label " + text);
+      div.addEventListener("click", function() {
+        selectDragItem(this);
+      });
+      div.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectDragItem(this);
+        }
+      });
       return div;
     }
 
     function makeSlot(n) {
       const div = document.createElement("div");
       div.className = "slot";
+      div.tabIndex = 0;
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-label", "Place selected label in position " + n);
       div.innerHTML = `<div class="slotlabel">Position ${n}</div>`;
       return div;
     }
@@ -1133,6 +1154,7 @@
           <p class="demo-note">Demonstration: if two labels both start <code class="call">M 1001 .B34</code>, then a fourth line of <code class="call">1998</code> shelves before <code class="call">2023</code>. If the class numbers differ earlier, use the class numbers instead and ignore the later lines.</p>
         </div>
         <p>Drag each label into the correct order from first to last.</p>
+        <p class="muted">On touch screens or keyboards, select a label first, then choose a position slot.</p>
         <p class="muted">Use the same comparison logic you practiced: main number first, then the next element, then line 4 and later details if needed.</p>
         <h3>Label Bank</h3>
         <div class="sortbank" id="bank"></div>
@@ -1155,11 +1177,25 @@
     function enableDnD() {
       document.querySelectorAll(".draggable").forEach(el => {
         el.addEventListener("dragstart", function(e) {
+          clearSelectedDragItem();
           e.dataTransfer.setData("text/plain", this.id);
         });
       });
 
       document.querySelectorAll(".slot").forEach(slot => {
+        slot.addEventListener("click", function(e) {
+          if (selectedDragItem && !e.target.closest(".draggable")) {
+            placeSelectedLabel(this);
+          }
+        });
+
+        slot.addEventListener("keydown", function(e) {
+          if (selectedDragItem && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            placeSelectedLabel(this);
+          }
+        });
+
         slot.addEventListener("dragover", function(e) {
           e.preventDefault();
           this.classList.add("drag-over");
@@ -1181,17 +1217,52 @@
           if (existing && bank) bank.appendChild(existing);
 
           this.appendChild(el);
+          clearSelectedDragItem();
         });
       });
 
       const bank = document.getElementById("bank");
+      bank.addEventListener("click", function(e) {
+        if (selectedDragItem && !e.target.closest(".draggable")) {
+          placeSelectedLabel(bank);
+        }
+      });
       bank.addEventListener("dragover", e => e.preventDefault());
       bank.addEventListener("drop", function(e) {
         e.preventDefault();
         const id = e.dataTransfer.getData("text/plain");
         const el = document.getElementById(id);
         if (el) bank.appendChild(el);
+        clearSelectedDragItem();
       });
+    }
+
+    function selectDragItem(el) {
+      if (selectedDragItem === el) {
+        clearSelectedDragItem();
+        return;
+      }
+      clearSelectedDragItem();
+      selectedDragItem = el;
+      selectedDragItem.classList.add("selected");
+    }
+
+    function clearSelectedDragItem() {
+      if (selectedDragItem) {
+        selectedDragItem.classList.remove("selected");
+      }
+      selectedDragItem = null;
+    }
+
+    function placeSelectedLabel(target) {
+      if (!selectedDragItem) return;
+      const bank = document.getElementById("bank");
+      if (target.classList.contains("slot")) {
+        const existing = target.querySelector(".draggable");
+        if (existing && bank) bank.appendChild(existing);
+      }
+      target.appendChild(selectedDragItem);
+      clearSelectedDragItem();
     }
 
     function checkDrag() {
