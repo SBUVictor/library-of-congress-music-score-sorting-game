@@ -1142,6 +1142,7 @@
     }
 
     function renderFinalDrag() {
+      clearSelectedDragItem();
       if (!state.finalDragOrder) state.finalDragOrder = generateFinalDragOrder();
       const correctOrder = state.finalDragOrder;
       const shuffled = shuffle(correctOrder);
@@ -1392,19 +1393,24 @@
       status.innerHTML = `<div class="feedback warn">Submitting results...</div>`;
 
       try {
-        await fetch(APP_SCRIPT_URL, {
+        const response = await fetch(APP_SCRIPT_URL, {
           method: "POST",
-          mode: "no-cors",
+          mode: "cors",
           headers: {
             "Content-Type": "text/plain;charset=utf-8"
           },
           body: JSON.stringify(payload)
         });
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.error || result.message || "Submission was not accepted.");
+        }
 
         state.submitted = true;
-        status.innerHTML = `<div class="feedback good">Submission sent. Check the sheet in a few seconds.</div>`;
+        status.innerHTML = `<div class="feedback good">${escapeHtml(result.message || "Submission recorded.")}</div>`;
       } catch (error) {
-        status.innerHTML = `<div class="feedback bad">Submission failed in the browser.</div>`;
+        status.innerHTML = `<div class="feedback bad">Submission failed: ${escapeHtml(error && error.message ? error.message : error)}</div>`;
       }
     }
 
