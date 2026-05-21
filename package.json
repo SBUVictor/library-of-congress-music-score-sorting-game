@@ -1,0 +1,33 @@
+{
+  "name": "shelf-it-right",
+  "version": "1.0.0",
+  "description": "Portable desktop build for Shelf It Right, a music score call-number training game.",
+  "main": "desktop/main.js",
+  "private": true,
+  "scripts": {
+    "dist:win": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "edu.stonybrook.shelf-it-right",
+    "productName": "Shelf It Right",
+    "artifactName": "Shelf-It-Right-Portable.${ext}",
+    "asar": true,
+    "files": [
+      "index.html",
+      "desktop/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "Shelf-It-Right-Portable.exe"
+    }
+  }
+}
