@@ -361,8 +361,8 @@
           <input id="preferredName" type="text" placeholder="Enter preferred name" />
         </div>
         <div class="field">
-          <label for="sbuEmail">SBU Email</label>
-          <input id="sbuEmail" type="email" placeholder="name@stonybrook.edu" />
+          <label for="sbuEmail">Email</label>
+          <input id="sbuEmail" type="email" placeholder="Email" />
         </div>
       </div>
 
@@ -949,8 +949,8 @@
 
       if (!real) return "Please enter the student’s real name.";
       if (!preferred) return "Please enter the student’s preferred name.";
-      if (!/^[A-Za-z0-9._%+-]+@stonybrook\.edu$/i.test(email)) {
-        return "Please enter a valid SBU email ending in @stonybrook.edu.";
+      if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i.test(email)) {
+        return "Please enter a valid email address.";
       }
       return "";
     }
