@@ -6,7 +6,7 @@ Live game: https://sbuvictor.github.io/music-sorting-game/
 
 ## Current Status
 
-Last reviewed: May 19, 2026.
+Last reviewed: May 31, 2026.
 
 The live game currently teaches Library of Congress Classification call-number ordering for music scores. It is not a Dewey Decimal training game.
 
@@ -19,8 +19,8 @@ The current version includes:
 - A final sorting activity with randomized labels
 - Desktop drag-and-drop support
 - Mobile and keyboard tap-to-place support for the final sorting activity
-- Stony Brook email validation
-- Score submission to a connected Google Sheet
+- General email validation
+- Score submission to a connected Google Sheet (for @stonybrook.edu players)
 - Grade email delivery through Google Apps Script
 
 ## What It Teaches
@@ -46,7 +46,7 @@ Current limits:
 
 ## How The Game Works
 
-1. The learner enters their real name, preferred name, and Stony Brook email.
+1. The learner enters their real name, preferred name, and email.
 2. Each module starts with a lesson and worked example.
 3. The learner answers 20 semi-random comparison questions per module.
 4. The learner completes a final order-sorting activity.
@@ -66,9 +66,8 @@ The frontend posts results to a Google Apps Script web app URL stored in `index.
 
 The Apps Script backend:
 
-- Requires a `@stonybrook.edu` email address
-- Records submissions in the connected Google Sheet
-- Sends a grade email with `MailApp`
+- Accepts any valid email address, but only records @stonybrook.edu submissions to the connected Google Sheet
+- Sends a grade/score email with `MailApp` to all players
 - Stores email status fields such as `Sent` or `Failed`
 
 Honest caveat: the browser submission uses `no-cors`, so the page can confirm that it sent the request, but it cannot read the Apps Script response directly. The reliable confirmation is the sheet row and the email status/email receipt.

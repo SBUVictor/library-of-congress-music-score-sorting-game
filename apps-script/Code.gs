@@ -60,15 +60,22 @@ function doPost(e) {
       });
     }
 
-    rowNumber = appendSubmission_(payload);
+    const isSbuEmail = SCOREBOARD_CONFIG.REQUIRED_EMAIL_PATTERN.test(payload.sbuEmail);
+    if (isSbuEmail) {
+      rowNumber = appendSubmission_(payload);
+    }
+
     const emailResult = sendGradeEmail_(payload);
-    updateEmailStatus_(rowNumber, emailResult);
+    
+    if (isSbuEmail && rowNumber) {
+      updateEmailStatus_(rowNumber, emailResult);
+    }
 
     return jsonResponse_({
       ok: true,
       message: emailResult.ok
-        ? 'Submission recorded and grade email sent.'
-        : 'Submission recorded, but grade email could not be sent.',
+        ? (isSbuEmail ? 'Submission recorded and grade email sent.' : 'Grade email sent.')
+        : (isSbuEmail ? 'Submission recorded, but grade email could not be sent.' : 'Grade email could not be sent.'),
       emailSent: emailResult.ok
     });
   } catch (err) {
@@ -134,11 +141,12 @@ function validatePayload_(payload) {
   }
 
   if (!payload.sbuEmail) {
-    return 'SBU Email is required.';
+    return 'Email is required.';
   }
 
-  if (!SCOREBOARD_CONFIG.REQUIRED_EMAIL_PATTERN.test(payload.sbuEmail)) {
-    return 'Official submissions require a Stony Brook email address.';
+  const generalEmailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/i;
+  if (!generalEmailPattern.test(payload.sbuEmail)) {
+    return 'A valid email address is required.';
   }
 
   return '';
