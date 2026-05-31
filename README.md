@@ -4,12 +4,6 @@ Shelf It Right is a browser-based training game for learning how to compare and 
 
 Live game: https://sbuvictor.github.io/music-sorting-game/
 
-## Download
-
-Windows portable app: [Download Shelf-It-Right-Portable.exe](https://github.com/SBUVictor/music-sorting-game/releases/latest/download/Shelf-It-Right-Portable.exe)
-
-No installer required. Download the `.exe`, run it, and the game opens as a desktop app.
-
 ## Current Status
 
 Last reviewed: May 19, 2026.
@@ -28,7 +22,6 @@ The current version includes:
 - Stony Brook email validation
 - Score submission to a connected Google Sheet
 - Grade email delivery through Google Apps Script
-- A Windows portable desktop build published through GitHub Releases
 
 ## What It Teaches
 
@@ -85,8 +78,6 @@ Honest caveat: the browser submission uses `no-cors`, so the page can confirm th
 - `index.html` - the full game frontend, question generation, lessons, scoring, and submit logic
 - `Code.gs` - Apps Script backend source kept at the repo root for easy copying
 - `apps-script/Code.gs` - same backend source, kept in an Apps Script-specific folder
-- `desktop/main.js` - Electron launcher for the Windows portable app
-- `.github/workflows/windows-portable.yml` - release workflow that builds the Windows `.exe`
 
 The two `Code.gs` copies should stay in sync.
 
@@ -98,8 +89,6 @@ Google Apps Script is separate. Updating `Code.gs` in GitHub does not automatica
 
 If the Apps Script deployment URL changes, update `APP_SCRIPT_URL` in `index.html` and publish the change to GitHub Pages.
 
-The Windows portable `.exe` is built by GitHub Actions when a version tag such as `v1.0.0` is pushed. The release asset is published at the stable `releases/latest/download` link above.
-
 ## Built With
 
 - HTML
@@ -109,8 +98,6 @@ The Windows portable `.exe` is built by GitHub Actions when a version tag such a
 - Google Apps Script
 - Google Sheets
 - `MailApp` for grade emails
-- Electron
-- GitHub Actions
 
 ## Known Limitations
 
@@ -118,7 +105,6 @@ The Windows portable `.exe` is built by GitHub Actions when a version tag such a
 - No admin dashboard for reviewing attempts.
 - Email identity is validated by address pattern, not by a login flow.
 - The frontend cannot display the actual Apps Script JSON response because of the `no-cors` submission mode.
-- The Windows portable app is unsigned, so Windows may show a SmartScreen warning on first launch.
 - The content is intentionally scoped to the current music score training use case.
 
 ## Development Notes
