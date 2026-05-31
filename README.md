@@ -2,7 +2,7 @@
 
 Shelf It Right is a browser-based training game for learning how to compare and shelve music score call numbers. It is built for Stony Brook University Music Library student training.
 
-Live game: https://sbuvictor.github.io/music-sorting-game/
+Live game: https://sbuvictor.github.io/library-of-congress-music-score-sorting-game/
 
 ## Current Status
 
