@@ -340,7 +340,7 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="card">
+    <div class="card" id="intakeCard">
       <div class="version">Version 10.1 - Library of Congress</div>
       <h1>Shelf It Right</h1>
       <div id="introText">
@@ -963,6 +963,7 @@
       }
       showIntakeMessage("");
       resetState();
+      document.getElementById("intakeCard").classList.add("hidden");
       app.classList.remove("hidden");
       render();
     }
@@ -1005,9 +1006,11 @@
           <h2>${mod.title}</h2>
           <div class="check-box">
             <div class="section-label">Quick Check — must be correct to continue</div>
-            <p>${mod.check.prompt}</p>
-            <button class="choice" onclick="checkTeachAnswer(0)">${mod.check.choices[0]}</button>
-            <button class="choice" onclick="checkTeachAnswer(1)">${mod.check.choices[1]}</button>
+            <div id="checkQuestionContainer">
+              <p>${mod.check.prompt}</p>
+              <button class="choice" onclick="checkTeachAnswer(0)">${mod.check.choices[0]}</button>
+              <button class="choice" onclick="checkTeachAnswer(1)">${mod.check.choices[1]}</button>
+            </div>
             <div id="checkFeedback"></div>
           </div>
         `;
@@ -1028,9 +1031,11 @@
       screen.innerHTML = `
         <h2>${mod.title}</h2>
         <p><strong>Question ${state.qIndex + 1} of ${questions.length}</strong></p>
-        <p>${q[0]}</p>
-        <button class="choice" onclick="answerQuestion(0)">${q[1]}</button>
-        <button class="choice" onclick="answerQuestion(1)">${q[2]}</button>
+        <div id="questionContainer">
+          <p>${q[0]}</p>
+          <button class="choice" onclick="answerQuestion(0)">${q[1]}</button>
+          <button class="choice" onclick="answerQuestion(1)">${q[2]}</button>
+        </div>
         <div id="quizFeedback"></div>
       `;
     }
@@ -1045,15 +1050,23 @@
       const feedback = document.getElementById("checkFeedback");
       const correct = choice === mod.check.answer;
 
-      feedback.innerHTML = `
-        <div class="feedback ${correct ? "good" : "bad"}">
-          ${correct ? "Correct." : "Not quite."} ${mod.check.explain}
-        </div>
-      `;
-
       if (correct) {
-        feedback.innerHTML += `<button onclick="goWorked()">Continue</button>`;
-        document.querySelectorAll(".choice").forEach(btn => btn.disabled = true);
+        const qContainer = document.getElementById("checkQuestionContainer");
+        if (qContainer) {
+          qContainer.classList.add("hidden");
+        }
+        feedback.innerHTML = `
+          <div class="feedback good">
+            Correct. ${mod.check.explain}
+          </div>
+          <button onclick="goWorked()">Continue</button>
+        `;
+      } else {
+        feedback.innerHTML = `
+          <div class="feedback bad">
+            Not quite. ${mod.check.explain}
+          </div>
+        `;
       }
     }
 
@@ -1077,6 +1090,11 @@
         state.moduleCorrect[mod.key] += 1;
       }
 
+      const qContainer = document.getElementById("questionContainer");
+      if (qContainer) {
+        qContainer.classList.add("hidden");
+      }
+
       const feedback = document.getElementById("quizFeedback");
       feedback.innerHTML = `
         <div class="feedback ${correct ? "good" : "bad"}">
@@ -1084,8 +1102,6 @@
         </div>
         <button onclick="nextQuestion()">Continue</button>
       `;
-
-      document.querySelectorAll(".choice").forEach(btn => btn.disabled = true);
     }
 
     function nextQuestion() {
