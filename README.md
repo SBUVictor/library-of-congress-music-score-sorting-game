@@ -108,6 +108,6 @@ If the Apps Script deployment URL changes, update `APP_SCRIPT_URL` in `index.htm
 
 ## Development Notes
 
-Created by Victor Santiago with AI-assisted implementation support.
-
-This project was built through an iterative collaboration: human direction, music library domain knowledge, testing, and design decisions paired with AI-assisted coding, debugging, and documentation updates.
+This project was built through an iterative collaboration:
+- **Product Direction, Design, Domain Knowledge & Testing**: Victor Santiago (provided music library domain knowledge, direction, design feedback, testing, and vibe coding).
+- **Code Implementation, Architecture, & Writing**: Antigravity, a coding assistant developed by Google DeepMind (handled all actual software engineering, coding implementation, debugging, refactoring, and codebase documentation).
