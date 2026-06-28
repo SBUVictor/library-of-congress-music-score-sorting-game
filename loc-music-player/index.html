@@ -109,5 +109,126 @@
     function escAttr(s){return esc(s).replace(/'/g,'&#39;')}
     init();
   </script>
+
+<script id="loc-player-hotfix">
+(function(){
+  function $(id){ return document.getElementById(id); }
+
+  document.addEventListener("error", function(e){
+    if(e.target && e.target.tagName === "IMG" && e.target.closest("#cover")){
+      $("cover").textContent = "LOC";
+    }
+  }, true);
+
+  function scanAudio(value, out){
+    if(!value) return;
+    if(typeof value === "string"){
+      if(/^https?:\/\//i.test(value) && /\.(mp3|m4a|wav|ogg|aac)(\?|$)/i.test(value)){
+        out.push(value);
+      }
+      return;
+    }
+    if(Array.isArray(value)){ value.forEach(v => scanAudio(v, out)); return; }
+    if(typeof value === "object"){ Object.values(value).forEach(v => scanAudio(v, out)); }
+  }
+
+  async function findDeepAudio(track){
+    if(track.audio) return track.audio;
+    if(!track.url) return "";
+    try{
+      const url = track.url.includes("?")
+        ? track.url + "&fo=json"
+        : track.url.replace(/\/?$/, "/") + "?fo=json";
+      const res = await fetch(url);
+      if(!res.ok) return "";
+      const data = await res.json();
+      const found = [];
+      scanAudio(data, found);
+      const audioUrl = found.find(u => /\.mp3(\?|$)/i.test(u)) || found[0] || "";
+      if(audioUrl){
+        track.audio = audioUrl;
+        track.status = "Playable direct LOC audio";
+      }
+      return audioUrl;
+    }catch(e){
+      return "";
+    }
+  }
+
+  const oldShowMeta = showMeta;
+  showMeta = function(t){
+    oldShowMeta(t);
+    const frame = $("metaFrame");
+    if(frame) frame.classList.add("open");
+  };
+
+  playTrack = async function(i){
+    const t = tracks[i];
+    if(!t) return;
+
+    currentIndex = i;
+    currentTrack = t;
+
+    document.querySelectorAll(".row").forEach(row => {
+      row.classList.toggle("selected", Number(row.dataset.index) === i);
+    });
+
+    $("nowTitle").textContent = t.title || "Untitled";
+    $("nowCreator").textContent = t.creator || "Unknown creator";
+    $("seeMoreBtn").disabled = false;
+    $("copyNotice").textContent = "";
+
+    const cover = $("cover");
+    if(t.thumb){
+      cover.innerHTML = '<img alt="" src="' + String(t.thumb).replace(/"/g, "&quot;") + '">';
+      const img = cover.querySelector("img");
+      if(img) img.onerror = function(){ cover.textContent = "LOC"; };
+    }else{
+      cover.textContent = "LOC";
+    }
+
+    const row = document.querySelector('.row[data-index="' + i + '"]');
+    const btn = row ? row.querySelector(".playbtn") : null;
+    if(btn) btn.textContent = "…";
+
+    $("playerStatus").textContent = tracks.length + " queued · checking LOC audio";
+    const audioUrl = await findDeepAudio(t);
+
+    if(btn) btn.textContent = "▶";
+
+    if(audioUrl){
+      audio.src = audioUrl;
+      audio.load();
+      audio.play().catch(function(){
+        $("mainPlayBtn").textContent = "▶";
+        $("playerStatus").textContent = tracks.length + " queued · press play";
+      });
+      $("playerStatus").textContent = tracks.length + " queued · playing direct LOC audio";
+    }else{
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      $("mainPlayBtn").textContent = "▶";
+      t.status = "No direct browser-playable audio found. Metadata is available.";
+      $("playerStatus").textContent = tracks.length + " queued · no direct audio exposed";
+      showMeta(t);
+    }
+  };
+
+  audio.addEventListener("error", function(){
+    $("mainPlayBtn").textContent = "▶";
+    if(currentTrack){
+      currentTrack.status = "Audio could not load in browser. Metadata is available.";
+      $("playerStatus").textContent = tracks.length + " queued · audio failed";
+      showMeta(currentTrack);
+    }
+  });
+
+  audio.addEventListener("ended", function(){
+    if(tracks.length) playTrack((currentIndex + 1) % tracks.length);
+  });
+})();
+</script>
+
 </body>
 </html>
