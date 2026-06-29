@@ -1,0 +1,1534 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LOC Video Scope · Collection Dial</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050505;
+      --panel: #0a0a0a;
+      --line: #2a2a2a;
+      --line-strong: #6a6a6a;
+      --text: #9cffb1;
+      --muted: #56b86d;
+      --hot: #d7ffe0;
+      --dim: #0b1710;
+      --warn: #8dff9d;
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      line-height: 1.45;
+      text-shadow:
+        0 0 4px rgba(57, 255, 20, .55),
+        0 0 12px rgba(57, 255, 20, .22);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 50%, rgba(0,0,0,0) 50%),
+        radial-gradient(circle at center, rgba(255,255,255,.045), rgba(0,0,0,0) 48%);
+      background-size: 100% 4px, 100% 100%;
+      mix-blend-mode: screen;
+      opacity: .35;
+      z-index: 10;
+    }
+
+    a {
+      color: var(--text);
+      text-shadow:
+        0 0 4px rgba(57, 255, 20, .65),
+        0 0 12px rgba(57, 255, 20, .25);
+    }
+
+    button, select, input {
+      font: inherit;
+      color: var(--text);
+      background: #080808;
+      border: 1px solid var(--line);
+      border-radius: 0;
+    }
+
+    button {
+      padding: .7rem .8rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-weight: 800;
+      color: #c6c1ff;
+      text-shadow:
+        0 0 6px rgba(134, 110, 255, .9),
+        0 0 14px rgba(83, 54, 255, .55);
+    }
+
+    button:hover, button:focus-visible,
+    input:focus-visible, select:focus-visible {
+      border-color: #8b7dff;
+      outline: none;
+      background: #101010;
+    }
+
+    button:hover, button:focus-visible {
+      color: #eeecff;
+      text-shadow:
+        0 0 8px rgba(174, 157, 255, 1),
+        0 0 18px rgba(101, 73, 255, .8);
+    }
+
+    input, select {
+      width: 100%;
+      padding: .36rem .42rem;
+      font-size: .7rem;
+      background: #050505;
+    }
+
+    input::placeholder {
+      color: #3d7f4c;
+      text-shadow: 0 0 5px rgba(57, 255, 20, .18);
+    }
+
+    button.active {
+      border-color: #8b7dff;
+      background: #151027;
+      color: #eeecff;
+      text-shadow:
+        0 0 8px rgba(174, 157, 255, 1),
+        0 0 18px rgba(101, 73, 255, .8);
+    }
+
+    .wrap {
+      position: relative;
+      width: min(var(--max), calc(100% - 28px));
+      margin: 14px auto;
+      padding: 24px 18px 34px;
+      border: 1px solid #111;
+      border-radius: 26px 26px 34px 34px / 18px 18px 42px 42px;
+      background:
+        radial-gradient(140% 125% at 50% 10%, rgba(18, 34, 18, .28), rgba(0, 0, 0, 0) 42%),
+        radial-gradient(160% 135% at 50% 0%, rgba(255,255,255,.035), rgba(255,255,255,0) 34%),
+        linear-gradient(180deg, #080808 0%, #050505 40%, #060606 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.025),
+        inset 0 0 42px rgba(0,0,0,.38),
+        inset 0 -18px 34px rgba(0,0,0,.3),
+        0 12px 42px rgba(0,0,0,.42);
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .wrap::before {
+      content: "";
+      position: absolute;
+      inset: 10px 12px 12px;
+      border-radius: 22px 22px 30px 30px / 14px 14px 38px 38px;
+      border: 1px solid rgba(255,255,255,.03);
+      box-shadow:
+        inset 0 0 80px rgba(0,0,0,.34),
+        inset 0 0 120px rgba(156,255,177,.03);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(120% 95% at 50% 48%, rgba(0,0,0,0) 55%, rgba(0,0,0,.26) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      border: 1px solid var(--line);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.25rem, 4vw, 2.15rem);
+      letter-spacing: .08em;
+      line-height: 1;
+    }
+
+    .tagline {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+
+    .signal {
+      color: var(--muted);
+      font-size: .8rem;
+      white-space: nowrap;
+    }
+
+
+    /* Uppercase terminal labels get the brighter green glow. */
+    h1,
+    .signal,
+    .search-label,
+    .section-title,
+    .manager-toggle,
+    .advanced-row,
+    .advanced-panel label,
+    .dial-filter-label,
+    .dial-code,
+    .dial-title,
+    .eyebrow,
+    .meta b,
+    .fallback,
+    .notes b {
+      color: var(--hot);
+      font-weight: 800;
+      text-shadow:
+        0 0 6px rgba(156, 255, 177, .95),
+        0 0 16px rgba(57, 255, 20, .58),
+        0 0 30px rgba(57, 255, 20, .28);
+    }
+
+    .tagline,
+    .summary,
+    .queue-sub,
+    .manager-hint,
+    .meta span,
+    .notes p {
+      text-shadow:
+        0 0 3px rgba(57, 255, 20, .38),
+        0 0 9px rgba(57, 255, 20, .16);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    .channels, .now, .queue, .notes {
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .channels {
+      position: sticky;
+      top: 12px;
+      padding: 7px;
+    }
+
+
+    .scope-search {
+      display: grid;
+      gap: 6px;
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .search-label {
+      color: var(--muted);
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .11em;
+    }
+
+    .quick-search {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px;
+    }
+
+    .quick-search button,
+    .advanced-actions button {
+      padding: .36rem .42rem;
+      font-size: .62rem;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .advanced-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: .65rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .advanced-row a,
+    .advanced-toggle {
+      color: var(--muted);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line-strong);
+    }
+
+    .advanced-row a:hover,
+    .advanced-row a:focus-visible {
+      color: var(--text);
+      border-color: var(--hot);
+      outline: none;
+    }
+
+    .advanced-panel {
+      display: none;
+      gap: 5px;
+      padding-top: 4px;
+    }
+
+    .advanced-panel.open { display: grid; }
+
+    .advanced-panel label {
+      display: grid;
+      gap: 3px;
+      color: var(--muted);
+      font-size: .62rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .advanced-years {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px;
+    }
+
+    .advanced-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .section-title {
+      margin: 0 0 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: .78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+    }
+
+
+    .channel-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .channel-tools .section-title {
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .manager-toggle {
+      width: auto;
+      padding: 0;
+      border: 0;
+      border-bottom: 1px solid var(--line-strong);
+      background: transparent;
+      color: var(--muted);
+      font-size: .64rem;
+      line-height: 1.1;
+      letter-spacing: .08em;
+    }
+
+    .manager-toggle:hover,
+    .manager-toggle:focus-visible {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--hot);
+    }
+
+    .channel-manager {
+      display: none;
+      gap: 5px;
+      margin: 0 0 7px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      background: #050505;
+    }
+
+    .dial-readout {
+      display: grid;
+      grid-template-columns: 3.2rem minmax(0, 1fr);
+      gap: 6px;
+      align-items: center;
+      margin: 0 0 6px;
+      padding: 5px 7px;
+      border: 1px solid var(--line);
+      background: #030303;
+      min-height: 30px;
+    }
+
+    .dial-code {
+      color: var(--text);
+      font-size: .88rem;
+      letter-spacing: .08em;
+    }
+
+    .dial-title {
+      color: var(--muted);
+      font-size: .82rem;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .dial-filter-label {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: .62rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .channel-manager.open { display: grid; }
+
+    .manager-hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: .62rem;
+      line-height: 1.25;
+    }
+
+    .manager-list {
+      display: grid;
+      gap: 4px;
+      max-height: 210px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .manager-row {
+      display: grid;
+      grid-template-columns: auto 2.7rem minmax(0, 1fr);
+      gap: 5px;
+      align-items: center;
+      color: var(--muted);
+      font-size: .62rem;
+    }
+
+    .manager-row input[type="checkbox"] {
+      width: auto;
+      margin: 0 3px 0 0;
+      accent-color: #fff;
+    }
+
+    .manager-row input[type="text"] {
+      padding: .25rem .32rem;
+      font-size: .62rem;
+    }
+
+    .manager-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .manager-actions button {
+      padding: .32rem .4rem;
+      font-size: .62rem;
+      line-height: 1.1;
+    }
+
+    .channel-list {
+      display: grid;
+      gap: 3px;
+      max-height: 210px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .channel-list button {
+      width: 100%;
+      text-align: left;
+      display: grid;
+      grid-template-columns: 2.8rem minmax(0, 1fr) auto;
+      gap: .35rem;
+      align-items: center;
+      padding: .24rem .36rem;
+      min-height: 0;
+      font-size: .86rem;
+      line-height: 1.05;
+      letter-spacing: .015em;
+    }
+
+    .ch-code {
+      color: var(--muted);
+      font-size: .72rem;
+    }
+    .ch-name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      font-weight: 600;
+    }
+    .ch-count {
+      color: var(--muted);
+      font-size: .62rem;
+      text-align: right;
+      white-space: nowrap;
+    }
+    button.active .ch-code,
+    button.active .ch-count { color: #333; }
+
+    .stage {
+      display: grid;
+      gap: 12px;
+    }
+
+    .player-shell {
+      border: 1px solid var(--line-strong);
+      background: #000;
+      min-height: 260px;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+    }
+
+    .player-shell::after {
+      content: "LOC VIDEO SIGNAL";
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      color: rgba(255,255,255,.28);
+      font-size: .72rem;
+      pointer-events: none;
+      letter-spacing: .08em;
+    }
+
+    video, iframe {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      min-height: 240px;
+      border: 0;
+      background: #000;
+    }
+
+    iframe { display: none; }
+
+    .fallback {
+      display: none;
+      min-height: 260px;
+      padding: 24px;
+      place-content: center;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .fallback a {
+      display: inline-block;
+      margin-top: 12px;
+      border: 1px solid var(--line-strong);
+      padding: .7rem .9rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .now {
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .meta-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.1rem, 3vw, 1.65rem);
+      line-height: 1.15;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .meta b {
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .summary {
+      margin: 0;
+      color: #cfcfcf;
+      max-width: 80ch;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .player-shell .controls {
+      border-top: 1px solid var(--line-strong);
+      background: #050505;
+      padding: 9px 10px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .player-shell .controls button {
+      width: 100%;
+      min-width: 0;
+      min-height: 34px;
+      padding: .46rem .32rem;
+      font-size: .75rem;
+      line-height: 1.1;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .player-shell .controls #copyMetaBtn {
+      grid-column: 1 / -1;
+      justify-self: center;
+      width: calc(50% - 4px);
+    }
+
+    .queue {
+      padding: 10px;
+    }
+
+    .queue-list {
+      display: grid;
+      gap: 6px;
+      max-height: 330px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .queue-item {
+      border: 1px solid var(--line);
+      padding: .65rem;
+      background: #060606;
+      text-align: left;
+      display: grid;
+      gap: 3px;
+    }
+
+    .queue-item.active {
+      border-color: var(--hot);
+      background: #111;
+    }
+
+    .queue-title {
+      font-size: .9rem;
+    }
+
+    .queue-sub {
+      color: var(--muted);
+      font-size: .76rem;
+    }
+
+    .notes {
+      margin-top: 12px;
+      padding: 12px;
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .notes p { margin: .3rem 0; }
+
+    .loading {
+      display: grid;
+      min-height: 260px;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      padding: 20px;
+    }
+
+    .blink {
+      animation: blink 1.05s steps(1) infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .channels { position: static; }
+      .channel-list { max-height: 180px; }
+      .channel-list button { grid-template-columns: 2.7rem minmax(0, 1fr) auto; gap: .3rem; padding: .24rem .32rem; font-size: .82rem; }
+      .scope-search { max-width: none; }
+      .meta { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .wrap { width: min(100% - 18px, var(--max)); margin: 8px auto; padding: 14px 10px 18px; border-radius: 20px 20px 26px 26px / 14px 14px 28px 28px; }
+      header, .channels, .now, .queue, .notes { padding: 9px; }
+      .channel-list { max-height: 165px; }
+      .channel-list button { grid-template-columns: 2.55rem minmax(0, 1fr) auto; padding: .23rem .3rem; font-size: .78rem; }
+      .ch-code { font-size: .66rem; }
+      .ch-count { font-size: .56rem; }
+      button { padding: .62rem .65rem; }
+      .player-shell .controls { gap: 6px; padding: 7px; }
+      .player-shell .controls button { font-size: .66rem; min-height: 32px; padding: .42rem .2rem; }
+      .player-shell .controls #copyMetaBtn { width: calc(50% - 3px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="topline">
+        <h1>LOC VIDEO SCOPE</h1>
+        <div class="signal" id="signal">SIGNAL: BOOTING<span class="blink">_</span></div>
+      </div>
+      <p class="tagline">Library of Congress film/video collections as channels · black-screen archive surfing · Collection Dial</p>
+    </header>
+
+    <main class="grid">
+      <aside class="channels" aria-label="Collection channels">
+        <form class="scope-search" id="searchForm" aria-label="Search Library of Congress films and videos">
+          <label class="search-label" for="searchInput">Search LOC Video</label>
+          <div class="quick-search">
+            <input id="searchInput" name="q" type="search" placeholder="title / subject / creator" autocomplete="off" />
+            <button type="submit">Search</button>
+          </div>
+          <div class="advanced-row">
+            <a href="#advancedSearch" id="advancedToggle" class="advanced-toggle" aria-expanded="false" aria-controls="advancedSearch">Advanced search box</a>
+            <a id="locSearchLink" href="https://www.loc.gov/film-and-videos/?st=gallery" target="_blank" rel="noreferrer">Open LOC</a>
+          </div>
+          <div class="advanced-panel" id="advancedSearch" hidden>
+            <label for="advancedKeyword">Keyword
+              <input id="advancedKeyword" type="search" placeholder="optional keyword" autocomplete="off" />
+            </label>
+            <label for="advancedCollection">Collection
+              <select id="advancedCollection"></select>
+            </label>
+            <div class="advanced-years">
+              <label for="yearFrom">From
+                <input id="yearFrom" inputmode="numeric" pattern="[0-9]*" placeholder="1890" />
+              </label>
+              <label for="yearTo">To
+                <input id="yearTo" inputmode="numeric" pattern="[0-9]*" placeholder="1915" />
+              </label>
+            </div>
+            <div class="advanced-actions">
+              <button id="advancedTune" type="button">Tune</button>
+              <button id="advancedOpen" type="button">Open LOC</button>
+            </div>
+          </div>
+        </form>
+        <div class="channel-tools">
+          <p class="section-title">Collection Dial</p>
+          <button id="channelManagerToggle" class="manager-toggle" type="button" aria-expanded="false" aria-controls="channelManager">Manage</button>
+        </div>
+        <div class="dial-readout" id="dialReadout">
+          <span class="dial-code">C--</span>
+          <span class="dial-title">Tuning collections</span>
+        </div>
+        <label class="dial-filter-label" for="channelFilter">
+          Filter collections
+          <input id="channelFilter" type="search" placeholder="new york / music / animation" autocomplete="off" />
+        </label>
+        <div class="channel-manager" id="channelManager" hidden>
+          <p class="manager-hint">Show/hide collection channels and shorten dial labels. Saved in this browser only.</p>
+          <div class="manager-list" id="channelManagerList"></div>
+          <div class="manager-actions">
+            <button id="channelManagerApply" type="button">Apply</button>
+            <button id="channelManagerReset" type="button">Reset</button>
+          </div>
+        </div>
+        <div class="channel-list" id="channelList"></div>
+      </aside>
+
+      <section class="stage">
+        <div class="player-shell" id="playerShell">
+          <div class="loading" id="loading">ACQUIRING LOC SIGNAL<span class="blink">_</span></div>
+          <video id="video" controls playsinline preload="metadata"></video>
+          <iframe id="frame" title="Library of Congress item fallback"></iframe>
+          <div class="fallback" id="fallback">
+            <div>
+              <div>NO DIRECT MP4 FOUND IN THE SIGNAL.</div>
+              <a id="fallbackLink" href="#" target="_blank" rel="noreferrer">OPEN THIS REEL AT LOC</a>
+            </div>
+          </div>
+
+          <div class="controls" aria-label="Playback controls">
+            <button id="prevBtn" type="button">Prev</button>
+            <button id="nextBtn" type="button">Next Reel</button>
+            <button id="randomBtn" type="button">Random</button>
+            <button id="reloadBtn" type="button">Reload Channel</button>
+            <button id="copyMetaBtn" type="button">Copy Metadata</button>
+          </div>
+        </div>
+
+        <section class="now" aria-live="polite">
+          <div class="meta-top">
+            <div>
+              <div class="eyebrow" id="channelName">CH --</div>
+              <h2 id="title">Loading…</h2>
+            </div>
+            <div class="eyebrow" id="counter">-- / --</div>
+          </div>
+
+          <div class="meta">
+            <div><b>Date</b><span id="date">—</span></div>
+            <div><b>Collection</b><span id="collection">—</span></div>
+            <div><b>Source</b><a id="source" href="#" target="_blank" rel="noreferrer">Library of Congress</a></div>
+          </div>
+
+          <p class="summary" id="summary">Fetching the first reel.</p>
+        </section>
+
+        <section class="queue">
+          <p class="section-title">Current Plays</p>
+          <div class="queue-list" id="queueList"></div>
+        </section>
+      </section>
+    </main>
+
+    <section class="notes">
+      <p><b>Keys:</b> 1–9 tune the first visible collection channels · N next reel · P previous · R random · I open LOC item · C copy metadata.</p>
+      <p><b>Note:</b> LOC does not provide YouTube-style play counts here, so the dial treats LOC film/video collections as channel queues and pulls playable-looking records from each collection/search feed.</p>
+    </section>
+  </div>
+
+  <script>
+    function collectionEndpoint(partof = '', count = 35) {
+      const url = new URL('https://www.loc.gov/film-and-videos/');
+      url.searchParams.set('fo', 'json');
+      url.searchParams.set('c', String(count));
+      const facets = ['online-format:video'];
+      if (partof) facets.push(`partof:${partof}`);
+      url.searchParams.set('fa', facets.join('|'));
+      return url.toString();
+    }
+
+    function collectionChannel(code, name, label, itemCount, blurb) {
+      return {
+        code,
+        name,
+        label,
+        itemCount,
+        partof: name,
+        endpoint: collectionEndpoint(name),
+        blurb
+      };
+    }
+
+    const CHANNELS = [
+      {
+        code: 'C00',
+        name: 'All LOC Film / Video',
+        label: 'All Video',
+        itemCount: 'live',
+        endpoint: collectionEndpoint('', 50),
+        blurb: 'A broad scan across Library of Congress film and video records.'
+      },
+      collectionChannel('C01', 'African American Ballet in Washington, D.C.: A Legacy in Motion', 'African American Ballet', '15', 'Community collection documenting Black ballet legacies in Washington, D.C.'),
+      collectionChannel('C02', 'America at Work, America at Leisure: Motion Pictures from 1894-1915', 'Work + Leisure', '158', 'Turn-of-the-century work, school, sports, streets, fairs, and everyday motion.'),
+      collectionChannel('C03', 'The Carnegie Hall Collection of Conversations with Composers', 'Composers Talk', '11', 'Composer interviews from the Carnegie Hall Collection.'),
+      collectionChannel('C04', 'Civil Rights History Project', 'Civil Rights', '157', 'Oral histories and moving image records from the Civil Rights History Project.'),
+      collectionChannel('C05', 'Continuing Comanche Culture: Culture as Making, Craft as Shared Story', 'Comanche Culture', '9', 'Community documentation of Comanche culture, craft, and shared story.'),
+      collectionChannel('C06', "Tenth Street Historic District and The Bottom in Dallas's Oak Cliff Freedmen's Town", 'Tenth Street', '62', 'History and community memory from Dallas’s Oak Cliff Freedmen’s Town.'),
+      collectionChannel('C07', 'The Danny Kaye and Sylvia Fine Collection', 'Danny Kaye', '2,052', 'Performance, comedy, music, and archival materials from Danny Kaye and Sylvia Fine.'),
+      collectionChannel('C08', 'Diversity Plaza: Queens as Cultural Crossroads', 'Diversity Plaza', '63', 'A Queens public-space collection documenting culture, migration, and community.'),
+      collectionChannel('C09', 'The Life of a City: Early Films of New York, 1898-1906', 'Old New York', '54', 'Street scenes, skyscrapers, ferry docks, crowds, bridges, and city movement.'),
+      collectionChannel('C10', 'Inventing Entertainment: The Early Motion Pictures and Sound Recordings of the Edison Companies', 'Edison Machine', '425', 'Early motion pictures and entertainment experiments from the Edison companies.'),
+      collectionChannel('C11', 'Inside an American Factory: Films of the Westinghouse Works, 1904', 'Factory Cam', '39', 'Westinghouse Works interiors, machinery, workers, aisles, and industrial motion.'),
+      collectionChannel('C12', 'Geographers on Film', 'Geographers', '30', 'Recorded interviews with geographers and cartographers.'),
+      collectionChannel('C13', 'Great Conversations in Music', 'Music Room', '65', 'Long-form conversations with musicians, pianists, conductors, and composers.'),
+      collectionChannel('C14', 'Hidden Treasures at the Library of Congress', 'Hidden Treasures', '27', 'Short history-minded features on notable Library collections and artifacts.'),
+      collectionChannel('C15', 'Historical Media Publications Collection', 'Media Publications', '9,268', 'Publications and records around motion image and broadcasting history.'),
+      collectionChannel('C16', 'Selections from the Katherine Dunham Collection', 'Katherine Dunham', '125', 'Dance, performance, and cultural documentation from Katherine Dunham materials.'),
+      collectionChannel('C17', 'Lao Buddhist New Year Festival in Southern Louisiana', 'Lao New Year', '32', 'Community documentation of the Louisiana Lao New Year Festival.'),
+      collectionChannel('C18', 'Lao Special Guerrilla Unit and Royal Lao Army Veteran Interviews', 'Lao Veterans', '19', 'Veteran interviews related to the Secret War in Laos.'),
+      collectionChannel('C19', 'Last Days of a President: Films of McKinley and the Pan-American Exposition, 1901', 'McKinley 1901', '36', 'McKinley, the Pan-American Exposition, and early presidential actuality films.'),
+      collectionChannel('C20', 'National Screening Room', 'Screening Room', '1,294', 'A broad showcase of the Library’s moving image collection.'),
+      collectionChannel('C21', "Neah Bay's Path to Wellness", 'Neah Bay', '19', 'Makah community educational workshops and wellness reflections.'),
+      collectionChannel('C22', 'Origins of American Animation', 'Animation Lab', '29', 'Early animation, cartoons, stop motion, drawings, and comic-strip energy.'),
+      collectionChannel('C23', 'Patriotic Melodies', 'Patriotic Melodies', '175', 'Stories and materials connected to American patriotic songs.'),
+      collectionChannel('C24', 'Pinelands Folklife Project', 'Pinelands', '1,325', 'Folklife documentation from New Jersey’s Pinelands region.'),
+      collectionChannel('C25', 'Ragtime', 'Ragtime', '191', 'Materials around ragtime as American music, history, and performance.'),
+      collectionChannel('C26', 'Buckaroos in Paradise: Ranching Culture in Northern Nevada, 1945-1982', 'Buckaroos', '2,441', 'Ranching culture, field documentation, photographs, sound, and motion pictures.'),
+      collectionChannel('C27', 'Before and After the Great Earthquake and Fire: Early Films of San Francisco, 1897-1916', 'San Francisco 1906', '34', 'Early San Francisco films before and after the 1906 earthquake and fire.'),
+      collectionChannel('C28', 'Selections from the National Film Registry', 'Film Registry', '72', 'Films selected for cultural, historical, or aesthetic significance.'),
+      collectionChannel('C29', 'The Library of Congress Celebrates the Songs of America', 'Songs of America', '51,839', 'American song, performance, and music history across Library collections.'),
+      collectionChannel('C30', "Sonidos de Houston: Documenting the City's Chicano Music Scene", 'Sonidos Houston', '35', 'Documentation of Houston’s Chicano music scene.'),
+      collectionChannel('C31', 'The Spanish-American War in Motion Pictures', 'Spanish-American War', '81', 'Motion pictures from the Spanish-American War and Philippine Revolution era.'),
+      collectionChannel('C32', 'Specialty Coffee Farmers in Puerto Rico', 'Puerto Rico Coffee', '59', 'Community documentation of specialty coffee farmers in Puerto Rico.'),
+      collectionChannel('C33', 'Theodore Roosevelt: His Life and Times on Film', 'T. Roosevelt', '122', 'Motion pictures and sound recordings from Theodore Roosevelt’s life and era.'),
+      collectionChannel('C34', 'Variety Stage Sound Recordings and Motion Pictures', 'Variety Stage', '81', 'Animal acts, comic sketches, dance, dramatic excerpts, and early variety entertainment.'),
+      collectionChannel('C35', 'Webinars', 'Webinars', '525', 'Instructional presentations, workshops, talks, and online LOC events.')
+    ];
+
+    const CHANNEL_PREFS_KEY = 'locVideoScopeChannelPrefsCollectionDialV1';
+    const DEFAULT_CHANNEL_LABELS = CHANNELS.reduce((memo, channel) => {
+      memo[channel.code] = channel.label;
+      return memo;
+    }, {});
+
+    function loadChannelPrefs() {
+      try {
+        return JSON.parse(localStorage.getItem(CHANNEL_PREFS_KEY) || '{}');
+      } catch (err) {
+        return {};
+      }
+    }
+
+    function saveChannelPrefs() {
+      const prefs = CHANNELS.reduce((memo, channel) => {
+        memo[channel.code] = {
+          label: channel.label,
+          enabled: channel.enabled !== false
+        };
+        return memo;
+      }, {});
+      localStorage.setItem(CHANNEL_PREFS_KEY, JSON.stringify(prefs));
+    }
+
+    function applyChannelPrefs() {
+      const prefs = loadChannelPrefs();
+      CHANNELS.forEach(channel => {
+        const pref = prefs[channel.code];
+        channel.enabled = pref?.enabled !== false;
+        channel.label = String(pref?.label || DEFAULT_CHANNEL_LABELS[channel.code] || channel.label).slice(0, 36);
+      });
+    }
+
+    applyChannelPrefs();
+
+    const state = {
+      channelIndex: 0,
+      itemIndex: 0,
+      channels: CHANNELS.map(ch => ({ ...ch, items: [], loaded: false }))
+    };
+
+    const els = {
+      signal: document.getElementById('signal'),
+      channelList: document.getElementById('channelList'),
+      channelFilter: document.getElementById('channelFilter'),
+      dialReadout: document.getElementById('dialReadout'),
+      queueList: document.getElementById('queueList'),
+      loading: document.getElementById('loading'),
+      video: document.getElementById('video'),
+      frame: document.getElementById('frame'),
+      fallback: document.getElementById('fallback'),
+      fallbackLink: document.getElementById('fallbackLink'),
+      channelName: document.getElementById('channelName'),
+      title: document.getElementById('title'),
+      counter: document.getElementById('counter'),
+      date: document.getElementById('date'),
+      collection: document.getElementById('collection'),
+      source: document.getElementById('source'),
+      summary: document.getElementById('summary'),
+      prevBtn: document.getElementById('prevBtn'),
+      nextBtn: document.getElementById('nextBtn'),
+      randomBtn: document.getElementById('randomBtn'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      copyMetaBtn: document.getElementById('copyMetaBtn'),
+      searchForm: document.getElementById('searchForm'),
+      searchInput: document.getElementById('searchInput'),
+      advancedToggle: document.getElementById('advancedToggle'),
+      advancedSearch: document.getElementById('advancedSearch'),
+      advancedKeyword: document.getElementById('advancedKeyword'),
+      advancedCollection: document.getElementById('advancedCollection'),
+      yearFrom: document.getElementById('yearFrom'),
+      yearTo: document.getElementById('yearTo'),
+      advancedTune: document.getElementById('advancedTune'),
+      advancedOpen: document.getElementById('advancedOpen'),
+      locSearchLink: document.getElementById('locSearchLink'),
+      channelManagerToggle: document.getElementById('channelManagerToggle'),
+      channelManager: document.getElementById('channelManager'),
+      channelManagerList: document.getElementById('channelManagerList'),
+      channelManagerApply: document.getElementById('channelManagerApply'),
+      channelManagerReset: document.getElementById('channelManagerReset')
+    };
+
+    function setSignal(text) {
+      els.signal.innerHTML = `SIGNAL: ${text}<span class="blink">_</span>`;
+    }
+
+    function normalizeUrl(url) {
+      if (!url) return '#';
+      return String(url).replace(/^http:/, 'https:');
+    }
+
+    function addJsonParam(url) {
+      const clean = normalizeUrl(url).replace(/\?.*$/, '');
+      return `${clean}?fo=json`;
+    }
+
+    function textFrom(value, fallback = '—') {
+      if (!value) return fallback;
+      if (Array.isArray(value)) return value.filter(Boolean).join(', ') || fallback;
+      if (typeof value === 'object') return value.title || value.name || fallback;
+      return String(value);
+    }
+
+    function firstText(value, fallback = '—') {
+      if (!value) return fallback;
+      if (Array.isArray(value)) return value[0] ? textFrom(value[0], fallback) : fallback;
+      return textFrom(value, fallback);
+    }
+
+    function summarize(result) {
+      const fields = [result.description, result.summary, result.item?.description, result.item?.summary];
+      for (const field of fields) {
+        const txt = firstText(field, '').replace(/\s+/g, ' ').trim();
+        if (txt) return txt.length > 280 ? `${txt.slice(0, 277)}…` : txt;
+      }
+      return 'No short summary was exposed in this result. Open the LOC record for the full catalog description.';
+    }
+
+    function collectionName(result, channel) {
+      const partof = result.partof || result.part_of || result.item?.partof;
+      if (Array.isArray(partof) && partof.length) return firstText(partof);
+      return channel.name;
+    }
+
+    function itemUrl(result) {
+      return normalizeUrl(result.url || result.id || result.item?.url || result.item?.id);
+    }
+
+    function mapResult(result, channel) {
+      return {
+        title: textFrom(result.title || result.item?.title, 'Untitled LOC reel'),
+        date: textFrom(result.date || result.dates || result.item?.date, 'Unknown'),
+        collection: collectionName(result, channel),
+        url: itemUrl(result),
+        summary: summarize(result),
+        raw: result
+      };
+    }
+
+    function isLikelyVideo(result) {
+      const hay = JSON.stringify({
+        online: result.online_format,
+        original: result.original_format,
+        mime: result.mime_type,
+        title: result.title,
+        url: result.url
+      }).toLowerCase();
+      return hay.includes('video') || hay.includes('film') || hay.includes('.mp4') || hay.includes('motion picture');
+    }
+
+    function findMediaUrl(obj, seen = new Set()) {
+      if (!obj || seen.has(obj)) return null;
+      if (typeof obj === 'string') {
+        const s = normalizeUrl(obj);
+        if (/\.mp4(\?|#|$)/i.test(s)) return s;
+        if (/download.*mp4/i.test(s)) return s;
+        return null;
+      }
+      if (typeof obj !== 'object') return null;
+      seen.add(obj);
+
+      const priorityKeys = ['mp4', 'download', 'url', 'file', 'files', 'resources', 'media', 'segments'];
+      for (const key of priorityKeys) {
+        if (key in obj) {
+          const found = findMediaUrl(obj[key], seen);
+          if (found) return found;
+        }
+      }
+      for (const key of Object.keys(obj)) {
+        const found = findMediaUrl(obj[key], seen);
+        if (found) return found;
+      }
+      return null;
+    }
+
+
+    function endpointViewUrl(endpoint) {
+      const url = new URL(endpoint);
+      url.searchParams.delete('fo');
+      return url.toString();
+    }
+
+    function cleanYear(value) {
+      const digits = String(value || '').replace(/\D/g, '').slice(0, 4);
+      return digits.length === 4 ? digits : '';
+    }
+
+    function buildSearchEndpoint(options = {}) {
+      const base = options.collectionEndpoint || 'https://www.loc.gov/film-and-videos/?fo=json&c=35&fa=online-format:video';
+      const url = new URL(base);
+      url.searchParams.set('fo', 'json');
+      url.searchParams.set('c', '35');
+      if (!url.searchParams.get('fa')) url.searchParams.set('fa', 'online-format:video');
+      const q = String(options.q || '').trim();
+      if (q) url.searchParams.set('q', q);
+      const from = cleanYear(options.from);
+      const to = cleanYear(options.to);
+      if (from || to) url.searchParams.set('dates', `${from || '0000'}/${to || from || '9999'}`);
+      return url.toString();
+    }
+
+    function updateLocSearchLink() {
+      const endpoint = buildSearchEndpoint({ q: els.searchInput.value });
+      els.locSearchLink.href = endpointViewUrl(endpoint);
+    }
+
+    async function tuneSearch(options = {}) {
+      const q = String(options.q || '').trim();
+      const from = cleanYear(options.from);
+      const to = cleanYear(options.to);
+      if (!q && !from && !to && !options.collectionEndpoint) {
+        els.searchInput.focus();
+        setSignal('ENTER SEARCH');
+        return;
+      }
+
+      const endpoint = buildSearchEndpoint(options);
+      const labelParts = [q || 'all video'];
+      if (from || to) labelParts.push(`${from || '0000'}-${to || '9999'}`);
+      const label = labelParts.join(' · ');
+      const searchChannel = {
+        code: 'SRCH',
+        name: `Search: ${label}`,
+        label: 'Search',
+        endpoint,
+        blurb: `Live LOC search queue for ${label}.`,
+        items: [],
+        loaded: false,
+        isSearch: true
+      };
+
+      if (state.channels[0]?.isSearch) state.channels[0] = searchChannel;
+      else state.channels.unshift(searchChannel);
+      await switchChannel(0, true);
+    }
+
+    function visibleChannelIndices() {
+      const filter = String(els.channelFilter?.value || '').trim().toLowerCase();
+      return state.channels
+        .map((channel, index) => ({ channel, index }))
+        .filter(entry => entry.channel.isSearch || entry.channel.enabled !== false)
+        .filter(entry => {
+          if (!filter || entry.channel.isSearch) return true;
+          const hay = `${entry.channel.code} ${entry.channel.name} ${entry.channel.label} ${entry.channel.blurb || ''}`.toLowerCase();
+          return hay.includes(filter);
+        })
+        .map(entry => entry.index);
+    }
+
+    function syncChannelPrefsToState() {
+      state.channels.forEach(channel => {
+        if (channel.isSearch) return;
+        const base = CHANNELS.find(item => item.code === channel.code);
+        if (!base) return;
+        channel.label = base.label;
+        channel.enabled = base.enabled;
+      });
+    }
+
+    function renderChannelManager() {
+      els.channelManagerList.innerHTML = '';
+      CHANNELS.forEach(channel => {
+        const row = document.createElement('div');
+        row.className = 'manager-row';
+        row.dataset.code = channel.code;
+        row.title = `${channel.name}${channel.itemCount ? ` · ${channel.itemCount} items` : ''}`;
+        row.innerHTML = `
+          <label><input class="manager-enabled" type="checkbox" ${channel.enabled !== false ? 'checked' : ''}>ON</label>
+          <span>${escapeHtml(channel.code)}</span>
+          <input class="manager-label" type="text" value="${escapeAttr(channel.label)}" maxlength="36" aria-label="${escapeAttr(channel.code)} label">
+        `;
+        els.channelManagerList.appendChild(row);
+      });
+    }
+
+    function applyChannelManager() {
+      els.channelManagerList.querySelectorAll('.manager-row').forEach(row => {
+        const code = row.dataset.code;
+        const channel = CHANNELS.find(item => item.code === code);
+        if (!channel) return;
+        const label = row.querySelector('.manager-label').value.trim();
+        channel.label = (label || DEFAULT_CHANNEL_LABELS[code] || channel.label).slice(0, 36);
+        channel.enabled = row.querySelector('.manager-enabled').checked;
+      });
+
+      if (!CHANNELS.some(channel => channel.enabled !== false)) {
+        CHANNELS.forEach(channel => { channel.enabled = true; });
+      }
+
+      saveChannelPrefs();
+      syncChannelPrefsToState();
+      populateAdvancedCollections();
+      renderChannelManager();
+      renderChannels();
+
+      const current = state.channels[state.channelIndex];
+      if (current && !current.isSearch && current.enabled === false) {
+        const firstVisible = visibleChannelIndices()[0] ?? 0;
+        switchChannel(firstVisible);
+      } else {
+        setSignal('CHANNELS SAVED');
+      }
+    }
+
+    function resetChannelManager() {
+      localStorage.removeItem(CHANNEL_PREFS_KEY);
+      CHANNELS.forEach(channel => {
+        channel.enabled = true;
+        channel.label = DEFAULT_CHANNEL_LABELS[channel.code] || channel.label;
+      });
+      syncChannelPrefsToState();
+      populateAdvancedCollections();
+      renderChannelManager();
+      renderChannels();
+      setSignal('CHANNELS RESET');
+    }
+
+    function populateAdvancedCollections() {
+      els.advancedCollection.innerHTML = '<option value="">All LOC film/video</option>';
+      CHANNELS.forEach(channel => {
+        const option = document.createElement('option');
+        option.value = channel.endpoint;
+        option.textContent = `${channel.code} · ${channel.label}${channel.itemCount ? ` (${channel.itemCount})` : ''}`;
+        els.advancedCollection.appendChild(option);
+      });
+    }
+
+    async function fetchChannel(index, force = false) {
+      const channel = state.channels[index];
+      if (channel.loaded && !force) return channel.items;
+
+      setSignal(`FETCHING ${channel.code}`);
+      channel.items = [];
+      renderQueue();
+
+      try {
+        const res = await fetch(channel.endpoint, { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error(`LOC returned ${res.status}`);
+        const data = await res.json();
+        const results = Array.isArray(data.results) ? data.results : [];
+        channel.items = results.filter(isLikelyVideo).map(result => mapResult(result, channel)).filter(item => item.url !== '#');
+        channel.loaded = true;
+        if (!channel.items.length) throw new Error('No video-looking results returned.');
+        setSignal(`${channel.code} LOCKED`);
+      } catch (err) {
+        setSignal('FETCH FAILED');
+        channel.items = [{
+          title: `${channel.name}: open collection at LOC`,
+          date: 'Live LOC link',
+          collection: channel.name,
+          url: endpointViewUrl(channel.endpoint),
+          summary: `The live JSON feed did not load from this browser context. Open the collection at LOC, or serve this file from GitHub Pages/localhost instead of file://. Details: ${err.message}`
+        }];
+        channel.loaded = true;
+      }
+      return channel.items;
+    }
+
+    async function loadItem(index = state.itemIndex) {
+      const channel = state.channels[state.channelIndex];
+      const items = channel.items;
+      if (!items.length) return;
+
+      state.itemIndex = ((index % items.length) + items.length) % items.length;
+      const item = items[state.itemIndex];
+
+      els.loading.style.display = 'grid';
+      els.video.style.display = 'none';
+      els.frame.style.display = 'none';
+      els.fallback.style.display = 'none';
+      els.video.removeAttribute('src');
+      els.video.load();
+
+      els.channelName.textContent = `${channel.code} : ${channel.name}`;
+      els.title.textContent = item.title;
+      els.counter.textContent = `${state.itemIndex + 1} / ${items.length}`;
+      els.date.textContent = item.date;
+      els.collection.textContent = item.collection;
+      els.source.href = item.url;
+      els.summary.textContent = item.summary || channel.blurb;
+      els.fallbackLink.href = item.url;
+      renderQueue();
+
+      setSignal(`TUNING ${channel.code}`);
+      try {
+        const res = await fetch(addJsonParam(item.url), { headers: { 'Accept': 'application/json' }});
+        if (!res.ok) throw new Error(`item JSON ${res.status}`);
+        const data = await res.json();
+        const mediaUrl = findMediaUrl(data);
+
+        if (mediaUrl) {
+          els.video.src = mediaUrl;
+          els.video.style.display = 'block';
+          els.loading.style.display = 'none';
+          setSignal(`${channel.code} PLAYABLE`);
+        } else {
+          showFallback(item, channel, 'No direct MP4 was exposed in this item JSON.');
+        }
+      } catch (err) {
+        showFallback(item, channel, err.message);
+      }
+    }
+
+    function showFallback(item, channel, reason) {
+      els.loading.style.display = 'none';
+      els.fallback.style.display = 'grid';
+      els.fallbackLink.href = item.url;
+      els.summary.textContent = `${item.summary || channel.blurb} [Fallback: ${reason}]`;
+      setSignal(`${channel.code} LOC LINK`);
+    }
+
+    function currentMetadataText() {
+      const channel = state.channels[state.channelIndex];
+      const item = channel?.items?.[state.itemIndex];
+      if (!channel || !item) return '';
+      return [
+        'LOC Video Scope Metadata',
+        `Title: ${item.title || 'Untitled LOC reel'}`,
+        `Date: ${item.date || 'Unknown'}`,
+        `Collection: ${item.collection || channel.name || 'Library of Congress'}`,
+        `Channel: ${channel.code} — ${channel.name}`,
+        `Queue Position: ${state.itemIndex + 1} of ${channel.items.length}`,
+        `Source: ${item.url || ''}`,
+        `Summary: ${item.summary || channel.blurb || ''}`
+      ].join('\n');
+    }
+
+    async function copyText(text) {
+      if (!text) throw new Error('No metadata loaded.');
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      textarea.remove();
+      if (!ok) throw new Error('Clipboard command failed.');
+    }
+
+    async function copyMetadata() {
+      const originalLabel = els.copyMetaBtn.textContent;
+      try {
+        await copyText(currentMetadataText());
+        els.copyMetaBtn.textContent = 'Copied';
+        setSignal('METADATA COPIED');
+      } catch (err) {
+        els.copyMetaBtn.textContent = 'Copy Failed';
+        setSignal('COPY FAILED');
+      } finally {
+        window.setTimeout(() => { els.copyMetaBtn.textContent = originalLabel; }, 1200);
+      }
+    }
+
+    async function switchChannel(index, force = false) {
+      state.channelIndex = ((index % state.channels.length) + state.channels.length) % state.channels.length;
+      state.itemIndex = 0;
+      renderChannels();
+      await fetchChannel(state.channelIndex, force);
+      await loadItem(0);
+    }
+
+    function renderChannels() {
+      els.channelList.innerHTML = '';
+      const active = state.channels[state.channelIndex];
+      if (active && els.dialReadout) {
+        els.dialReadout.innerHTML = `<span class="dial-code">${escapeHtml(active.code)}</span><span class="dial-title">${escapeHtml(active.name)}</span>`;
+      }
+      const visible = visibleChannelIndices();
+      if (!visible.length) {
+        const div = document.createElement('div');
+        div.className = 'queue-item';
+        div.innerHTML = '<span class="queue-title">No matching channels.</span><span class="queue-sub">Clear the collection filter to restore the dial.</span>';
+        els.channelList.appendChild(div);
+        return;
+      }
+      visible.forEach(index => {
+        const channel = state.channels[index];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = index === state.channelIndex ? 'active' : '';
+        const count = channel.itemCount ? `${channel.itemCount}` : '';
+        btn.innerHTML = `<span class="ch-code">${escapeHtml(channel.code)}</span><span class="ch-name">${escapeHtml(channel.label)}</span><span class="ch-count">${escapeHtml(count)}</span>`;
+        btn.title = `${channel.code} · ${channel.name}${count ? ` · ${count} items` : ''}`;
+        btn.addEventListener('click', () => switchChannel(index));
+        els.channelList.appendChild(btn);
+      });
+    }
+
+    function renderQueue() {
+      const channel = state.channels[state.channelIndex];
+      els.queueList.innerHTML = '';
+      if (!channel.items.length) {
+        const div = document.createElement('div');
+        div.className = 'queue-item';
+        div.innerHTML = '<span class="queue-title">No plays loaded yet.</span><span class="queue-sub">Channel feed is still tuning.</span>';
+        els.queueList.appendChild(div);
+        return;
+      }
+      channel.items.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `queue-item${index === state.itemIndex ? ' active' : ''}`;
+        btn.innerHTML = `<span class="queue-title">${escapeHtml(item.title)}</span><span class="queue-sub">${escapeHtml(item.date)} · ${escapeHtml(item.collection)}</span>`;
+        btn.addEventListener('click', () => loadItem(index));
+        els.queueList.appendChild(btn);
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
+    }
+
+    function escapeAttr(str) {
+      return escapeHtml(str).replace(/`/g, '&#96;');
+    }
+
+
+    els.searchForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const q = els.searchInput.value.trim();
+      els.advancedKeyword.value = q;
+      updateLocSearchLink();
+      tuneSearch({ q });
+    });
+
+    els.searchInput.addEventListener('input', updateLocSearchLink);
+
+    els.channelFilter.addEventListener('input', () => {
+      renderChannels();
+      const visible = visibleChannelIndices();
+      const currentStillVisible = visible.includes(state.channelIndex);
+      if (!currentStillVisible && visible.length) setSignal('FILTERED DIAL');
+    });
+
+    els.advancedToggle.addEventListener('click', event => {
+      event.preventDefault();
+      const open = els.advancedSearch.hidden;
+      els.advancedSearch.hidden = !open;
+      els.advancedSearch.classList.toggle('open', open);
+      els.advancedToggle.setAttribute('aria-expanded', String(open));
+      if (open && !els.advancedKeyword.value) els.advancedKeyword.value = els.searchInput.value.trim();
+    });
+
+    els.advancedTune.addEventListener('click', () => {
+      const q = els.advancedKeyword.value.trim();
+      els.searchInput.value = q;
+      tuneSearch({
+        q,
+        collectionEndpoint: els.advancedCollection.value,
+        from: els.yearFrom.value,
+        to: els.yearTo.value
+      });
+    });
+
+    els.advancedOpen.addEventListener('click', () => {
+      const endpoint = buildSearchEndpoint({
+        q: els.advancedKeyword.value,
+        collectionEndpoint: els.advancedCollection.value,
+        from: els.yearFrom.value,
+        to: els.yearTo.value
+      });
+      window.open(endpointViewUrl(endpoint), '_blank', 'noopener,noreferrer');
+    });
+
+    els.channelManagerToggle.addEventListener('click', () => {
+      const open = els.channelManager.hidden;
+      els.channelManager.hidden = !open;
+      els.channelManager.classList.toggle('open', open);
+      els.channelManagerToggle.setAttribute('aria-expanded', String(open));
+      els.channelManagerToggle.textContent = open ? 'Close' : 'Manage';
+      if (open) renderChannelManager();
+    });
+
+    els.channelManagerApply.addEventListener('click', applyChannelManager);
+    els.channelManagerReset.addEventListener('click', resetChannelManager);
+
+    els.prevBtn.addEventListener('click', () => loadItem(state.itemIndex - 1));
+    els.nextBtn.addEventListener('click', () => loadItem(state.itemIndex + 1));
+    els.randomBtn.addEventListener('click', () => {
+      const items = state.channels[state.channelIndex].items;
+      if (!items.length) return;
+      const next = Math.floor(Math.random() * items.length);
+      loadItem(next === state.itemIndex ? next + 1 : next);
+    });
+    els.reloadBtn.addEventListener('click', () => switchChannel(state.channelIndex, true));
+    els.copyMetaBtn.addEventListener('click', copyMetadata);
+
+    document.addEventListener('keydown', event => {
+      if (event.target && ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(event.target.tagName)) return;
+      const key = event.key.toLowerCase();
+      if (/^[1-9]$/.test(key)) {
+        const visible = visibleChannelIndices();
+        const idx = visible[Number(key) - 1];
+        if (idx !== undefined) switchChannel(idx);
+      }
+      if (key === 'n') loadItem(state.itemIndex + 1);
+      if (key === 'p') loadItem(state.itemIndex - 1);
+      if (key === 'r') els.randomBtn.click();
+      if (key === 'c') els.copyMetaBtn.click();
+      if (key === 'i') window.open(state.channels[state.channelIndex].items[state.itemIndex]?.url, '_blank', 'noopener,noreferrer');
+    });
+
+    populateAdvancedCollections();
+    updateLocSearchLink();
+    renderChannelManager();
+    renderChannels();
+    switchChannel(visibleChannelIndices()[0] ?? 0);
+  </script>
+</body>
+</html>
